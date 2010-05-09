@@ -83,7 +83,7 @@ exports.identify = function(pathOrArgs, callback) {
     if (!pathOrArgs.data)
       throw new Error('first argument is missing the "data" member');
   }
-  var proc = exec2(exports.identify.path, args, function(err, stdout, stderr) {
+  var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
     var result;
     if (!err) {
       if (isCustom) {
@@ -181,7 +181,7 @@ exports.convert = function(args, timeout, callback) {
   } else if (typeof timeout !== 'number') {
     timeout = 0;
   }
-  if (timeout && timeout > 0 && !isNaN(timeout))
+  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
 }
@@ -189,7 +189,7 @@ exports.convert.path = 'convert';
 
 exports.resize = function(options, callback) {
   var t = exports.resizeArgs(options);
-  var proc = exports.convert(t.args, function(err, stdout, stderr) {
+  var proc = exports.convert(t.args, t.opt.timeout, function(err, stdout, stderr) {
     callback(err, stdout, stderr);
   });
   if (t.opt.srcPath.match(/-$/)) {
@@ -215,7 +215,8 @@ exports.resizeArgs = function(options) {
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
-    customArgs: []
+    customArgs: [],
+    timeout: 0
   }
 
   // check options
