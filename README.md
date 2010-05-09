@@ -78,6 +78,8 @@ The `options` argument have the following default values:
 
     {
       srcPath: undefined,
+      srcData: null,
+      srcFormat: null,
       dstPath: undefined,
       quality: 0.8,
       format: 'jpg',
@@ -100,6 +102,18 @@ Example:
       width:   256
     }, function(err, stdout, stderr){
       if (err) throw err
+      sys.puts('resized kittens.jpg to fit within 256x256px')
+    });
+
+Example with stdin/stdout:
+
+    var fs = require('fs');
+    im.resize({
+      srcData: fs.readFileSync('kittens.jpg', 'binary'),
+      width:   256
+    }, function(err, stdout, stderr){
+      if (err) throw err
+      fs.writeFileSync('kittens-resized.jpg', stdout, 'binary');
       sys.puts('resized kittens.jpg to fit within 256x256px')
     });
 

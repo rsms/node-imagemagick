@@ -1,5 +1,75 @@
 var sys = require('sys'),
-    exec2 = require('child_process').execFile;
+    childproc = require('child_process');
+
+
+function exec2(file, args /*, options, callback */) {
+  var options = { encoding: 'utf8'
+                , timeout: 0
+                , maxBuffer: 500*1024
+                , killSignal: 'SIGKILL'
+                };
+
+  var callback = arguments[arguments.length-1];
+
+  if (typeof arguments[2] == 'object') {
+    var keys = Object.keys(options);
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (arguments[2][k] !== undefined) options[k] = arguments[2][k];
+    }
+  }
+
+  var child = childproc.spawn(file, args);
+  var stdout = "";
+  var stderr = "";
+  var killed = false;
+
+  var timeoutId;
+  if (options.timeout > 0) {
+    timeoutId = setTimeout(function () {
+      if (!killed) {
+        child.kill(options.killSignal);
+        killed = true;
+        timeoutId = null;
+      }
+    }, options.timeout);
+  }
+
+  child.stdout.setEncoding(options.encoding);
+  child.stderr.setEncoding(options.encoding);
+
+  child.stdout.addListener("data", function (chunk) {
+    stdout += chunk;
+    if (!killed && stdout.length > options.maxBuffer) {
+      child.kill(options.killSignal);
+      killed = true;
+    }
+  });
+
+  child.stderr.addListener("data", function (chunk) {
+    stderr += chunk;
+    if (!killed && stderr.length > options.maxBuffer) {
+      child.kill(options.killSignal);
+      killed = true
+    }
+  });
+
+  child.addListener("exit", function (code, signal) {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (code === 0 && signal === null) {
+      if (callback) callback(null, stdout, stderr);
+    } else {
+      var e = new Error("Command failed: " + stderr);
+      e.killed = killed;
+      e.code = code;
+      e.signal = signal;
+      if (callback) callback(e, stdout, stderr);
+    }
+  });
+  
+  return child;
+};
+
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
@@ -88,22 +158,39 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, callback) {
-  exec2(exports.convert.path, args, callback);
+exports.convert = function(args, timeout, callback) {
+  var procopt = {encoding: 'binary'};
+  if (typeof timeout === 'function') {
+    callback = timeout;
+    timeout = 0;
+  } else if (typeof timeout !== 'number') {
+    timeout = 0;
+  }
+  if (timeout && timeout > 0 && !isNaN(timeout))
+    procopt.timeout = timeout;
+  return exec2(exports.convert.path, args, procopt, callback);
 }
 exports.convert.path = 'convert';
 
 exports.resize = function(options, callback) {
-  var args = exports.resizeArgs(options);
-  exports.convert(args, function(err, stdout, stderr) {
+  var t = exports.resizeArgs(options);
+  var proc = exports.convert(t.args, function(err, stdout, stderr) {
     callback(err, stdout, stderr);
   });
+  if (t.opt.srcPath.match(/-$/)) {
+    proc.stdin.setEncoding('binary');
+    proc.stdin.write(t.opt.srcData, 'binary');
+    proc.stdin.end();
+  }
+  return proc;
 }
 
 exports.resizeArgs = function(options) {
   var opt = {
-    srcPath: undefined,
-    dstPath: undefined,
+    srcPath: null,
+    srcData: null,
+    srcFormat: null,
+    dstPath: null,
     quality: 0.8,
     format: 'jpg',
     progressive: false,
@@ -120,8 +207,16 @@ exports.resizeArgs = function(options) {
   if (typeof options !== 'object')
     throw new Error('first argument must be an object');
   for (var k in opt) if (k in options) opt[k] = options[k];
-  if (!opt.srcPath || !opt.dstPath)
-    throw new Error('srcPath or dstPath is not set');
+  if (!opt.srcPath && !opt.srcData)
+    throw new Error('both srcPath and srcData are empty');
+
+  // normalize options
+  if (!opt.format) opt.format = 'jpg';
+  if (!opt.srcPath) {
+    opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-');
+  }
+  if (!opt.dstPath)
+    opt.dstPath = (opt.format ? opt.format+':-' : '-'); // stdout
   if (opt.width === 0 && opt.height === 0)
     throw new Error('both width and height can not be 0 (zero)');
 
@@ -166,5 +261,5 @@ exports.resizeArgs = function(options) {
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
 
-  return args;
+  return {opt:opt, args:args};
 }
