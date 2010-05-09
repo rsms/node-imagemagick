@@ -212,7 +212,7 @@ exports.resizeArgs = function(options) {
     quality: 0.8,
     format: 'jpg',
     progressive: false,
-    colorspace: 'sRGB', // if null, no conversion is made
+    colorspace: null,
     width: 0,
     height: 0,
     strip: true,
