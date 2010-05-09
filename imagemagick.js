@@ -23,12 +23,14 @@ function exec2(file, args /*, options, callback */) {
   var stdout = "";
   var stderr = "";
   var killed = false;
+  var timedOut = false;
 
   var timeoutId;
   if (options.timeout > 0) {
     timeoutId = setTimeout(function () {
       if (!killed) {
         child.kill(options.killSignal);
+        timedOut = true;
         killed = true;
         timeoutId = null;
       }
@@ -59,7 +61,8 @@ function exec2(file, args /*, options, callback */) {
     if (code === 0 && signal === null) {
       if (callback) callback(null, stdout, stderr);
     } else {
-      var e = new Error("Command failed: " + stderr);
+      var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
+      e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
       e.signal = signal;
