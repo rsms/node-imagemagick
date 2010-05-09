@@ -73,8 +73,17 @@ function exec2(file, args /*, options, callback */) {
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
-      args = isCustom ? pathOrArgs : [pathOrArgs];
-  exec2(exports.identify.path, args, function(err, stdout, stderr) {
+      isData,
+      args = isCustom ? ([]).concat(pathOrArgs) : [pathOrArgs];
+
+  if (typeof args[args.length-1] === 'object') {
+    isData = true;
+    pathOrArgs = args[args.length-1];
+    args[args.length-1] = '-';
+    if (!pathOrArgs.data)
+      throw new Error('first argument is missing the "data" member');
+  }
+  var proc = exec2(exports.identify.path, args, function(err, stdout, stderr) {
     var result;
     if (!err) {
       if (isCustom) {
@@ -92,6 +101,12 @@ exports.identify = function(pathOrArgs, callback) {
     }
     callback(err, result);
   });
+  if (isData) {
+    proc.stdin.setEncoding('binary');
+    proc.stdin.write(pathOrArgs.data, 'binary');
+    proc.stdin.end();
+  }
+  return proc;
 }
 exports.identify.path = 'identify';
 
@@ -131,7 +146,7 @@ var exifFieldConverters = {
 };
 
 exports.readMetadata = function(path, callback) {
-  exec2(exports.identify.path, ['-format', '%[EXIF:*]', path], function(err, stdout, stderr) {
+  return exports.identify(['-format', '%[EXIF:*]', path], function(err, stdout) {
     var meta = {};
     if (!err) {
       stdout.split(/\n/).forEach(function(line){

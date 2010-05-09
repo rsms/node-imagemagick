@@ -1,14 +1,26 @@
 var sys = require('sys'),
+    fs = require('fs'),
     im = require('./imagemagick');
 
 var path = 'sample-images/jpeg5.jpg';
+var imdata = fs.readFileSync(path, 'binary');
 
 im.identify(path, function(err, features){
   if (err) return sys.error(err.stack || err);
   sys.puts('features: '+sys.inspect(features));
 })
 
+im.identify({data:imdata}, function(err, features){
+  if (err) return sys.error(err.stack || err);
+  sys.puts('features: '+sys.inspect(features));
+})
+
 im.readMetadata(path, function(err, metadata){
+  if (err) return sys.error(err.stack || err);
+  sys.puts('metadata: '+sys.inspect(metadata));
+})
+
+im.readMetadata({data:imdata}, function(err, metadata){
   if (err) return sys.error(err.stack || err);
   sys.puts('metadata: '+sys.inspect(metadata));
 })
@@ -27,11 +39,9 @@ im.resize({
   })
 })
 
-
-var fs = require('fs');
 timeStarted = new Date;
 im.resize({
-  srcData: fs.readFileSync(path, 'binary'),
+  srcData: imdata,
   width: 256
 }, function(err, stdout, stderr){
   if (err) return sys.error(err.stack || err);
