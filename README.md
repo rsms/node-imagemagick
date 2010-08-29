@@ -118,7 +118,7 @@ Example with stdin/stdout:
     });
 
 ### crop(options, callback) ###
-Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses options.srcPath, so make sure you set it :) Using only _options.width_ or _options.height_ will create a square dimensioned image.
+Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses _options.srcPath_, so make sure you set it :) Using only _options.width_ or _options.height_ will create a square dimensioned image.
 
 Example:
 
@@ -131,7 +131,6 @@ Example:
     }, function(err, stdout, stderr){
       // foo
     })
-    
 
 ## License (MIT)
 
