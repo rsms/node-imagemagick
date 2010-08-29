@@ -203,6 +203,37 @@ exports.resize = function(options, callback) {
   return proc;
 }
 
+exports.crop = function(options, callback) {
+  if (typeof options !== 'object') throw new Error('First argument must be an object!')
+  if(!options.srcPath) throw new Error("No srcPath defined!")
+  if(!options.dstPath) throw new Error("No dstPath defined!")
+  if(!options.height || !options.width) throw new Error("No width or height defined!")
+  
+  options.timeout = options.timeout || 0
+
+  exports.identify(options.srcPath, function(err, meta) {
+    var args        = [],
+        cropWidth   = Math.min(meta.width, options.height)
+        cropHeight  = Math.min(meta.height, options.width),
+        resizeArg   = (meta.width < meta.height) ? cropWidth + "x" : "x" + cropHeight
+  
+    args.push(options.srcPath)
+    args.push("-resize")
+    args.push(resizeArg)
+    args.push('-gravity')
+    args.push('center')
+    args.push('-crop')
+    args.push(cropWidth + "x" + cropHeight + "+0+0")
+    args.push("+repage")
+    args.push(options.dstPath)
+    
+    return exports.convert(args, options.timeout, function(err, stdout, stderr) {
+      callback(err, stdout, stderr)
+    })
+  })
+  
+}
+
 exports.resizeArgs = function(options) {
   var opt = {
     srcPath: null,
