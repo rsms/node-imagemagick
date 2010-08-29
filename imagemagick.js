@@ -223,7 +223,7 @@ exports.crop = function(options, callback) {
         
     t.args.forEach(function(arg) {
       // ignoreArg is set when resize flag was found
-      if(!ignoreArg) args.push(arg)
+      if(!ignoreArg && (arg != '-resize')) args.push(arg)
       
       // found resize flag! ignore the next argument
       if(arg == '-resize') ignoreArg = true
@@ -231,6 +231,8 @@ exports.crop = function(options, callback) {
       // found the argument after the resize flag; ignore it and set crop options
       if((arg != "-resize") && ignoreArg) {
         ignoreArg = false
+        
+        args.push("-size")
         args.push(resizeArg)
         args.push('-gravity')
         args.push('center')
@@ -240,7 +242,6 @@ exports.crop = function(options, callback) {
       }
     })
     t.args = args
-    
     resizeCall(t, callback)
   })
 }
