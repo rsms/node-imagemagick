@@ -242,9 +242,7 @@ exports.crop = function(options, callback) {
         ignoreArg = false
       }
     })
-    console.log("")
-    console.log("convert " + args.join(" "))
-    console.log("")
+
     t.args = args
     resizeCall(t, callback)
   })

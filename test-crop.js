@@ -2,7 +2,7 @@ var sys = require('sys'),
     fs = require('fs'),
     im = require('./imagemagick');
 
-var path = '/Users/prototype/Projects/mobilegems.de/lib/mobilegems/models/../../../public/images/Picture/3/original.jpeg';
+var path = 'img.jpg';
 var timeStarted = new Date;
 
 im.crop({
