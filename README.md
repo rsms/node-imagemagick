@@ -117,6 +117,22 @@ Example with stdin/stdout:
       sys.puts('resized kittens.jpg to fit within 256x256px')
     });
 
+### crop(options, callback) ###
+Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses options.srcPath, so make sure you set it :) Using only _options.width_ or _options.height_ will create a square dimensioned image.
+
+Example:
+
+    im.crop({
+      srcPath: path,
+      dstPath: 'cropped.jpg',
+      width: 800,
+      height: 600,
+      quality: 1
+    }, function(err, stdout, stderr){
+      // foo
+    })
+    
+
 ## License (MIT)
 
 Copyright (c) 2010 Rasmus Andersson <http://hunch.se/>
