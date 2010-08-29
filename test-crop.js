@@ -2,14 +2,15 @@ var sys = require('sys'),
     fs = require('fs'),
     im = require('./imagemagick');
 
-var path = '/Users/prototype/Pictures/Wallpapers-neu/hawaii_1280x800.jpg';
+var path = 'an_image.png';
 var timeStarted = new Date;
 
 im.crop({
   srcPath: path,
   dstPath: path + '.cropped.jpg',
-  width: 256,
-  height: 256
+  width: 800,
+  height: 600,
+  quality: 1
 }, function(err, stdout, stderr){
   if (err) return sys.error(err.stack || err);
   

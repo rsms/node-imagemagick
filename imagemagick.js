@@ -190,8 +190,7 @@ exports.convert = function(args, timeout, callback) {
 }
 exports.convert.path = 'convert';
 
-exports.resize = function(options, callback) {
-  var t = exports.resizeArgs(options);
+var resizeCall = function(t, callback) {
   var proc = exports.convert(t.args, t.opt.timeout, function(err, stdout, stderr) {
     callback(err, stdout, stderr);
   });
@@ -203,35 +202,47 @@ exports.resize = function(options, callback) {
   return proc;
 }
 
+exports.resize = function(options, callback) {
+  var t = exports.resizeArgs(options);
+  return resizeCall(t, callback)
+}
+
 exports.crop = function(options, callback) {
   if (typeof options !== 'object') throw new Error('First argument must be an object!')
   if(!options.srcPath) throw new Error("No srcPath defined!")
   if(!options.dstPath) throw new Error("No dstPath defined!")
-  if(!options.height || !options.width) throw new Error("No width or height defined!")
-  
-  options.timeout = options.timeout || 0
+  if(!options.height && !options.width) throw new Error("No width or height defined!")
 
   exports.identify(options.srcPath, function(err, meta) {
-    var args        = [],
-        cropWidth   = Math.min(meta.width, options.height)
-        cropHeight  = Math.min(meta.height, options.width),
-        resizeArg   = (meta.width < meta.height) ? cropWidth + "x" : "x" + cropHeight
-  
-    args.push(options.srcPath)
-    args.push("-resize")
-    args.push(resizeArg)
-    args.push('-gravity')
-    args.push('center')
-    args.push('-crop')
-    args.push(cropWidth + "x" + cropHeight + "+0+0")
-    args.push("+repage")
-    args.push(options.dstPath)
+    if(err) throw new Error(err.message)
     
-    return exports.convert(args, options.timeout, function(err, stdout, stderr) {
-      callback(err, stdout, stderr)
+    var t           = exports.resizeArgs(options),
+        resizeArg   = (meta.width < meta.height) ? (t.opt.width + "x") : ("x" + t.opt.height),
+        args        = [],
+        ignoreArg = false
+        
+    t.args.forEach(function(arg) {
+      // ignoreArg is set when resize flag was found
+      if(!ignoreArg) args.push(arg)
+      
+      // found resize flag! ignore the next argument
+      if(arg == '-resize') ignoreArg = true
+      
+      // found the argument after the resize flag; ignore it and set crop options
+      if((arg != "-resize") && ignoreArg) {
+        ignoreArg = false
+        args.push(resizeArg)
+        args.push('-gravity')
+        args.push('center')
+        args.push('-crop')
+        args.push(t.opt.width + "x" + t.opt.height + "+0+0")
+        args.push("+repage")
+      }
     })
+    t.args = args
+    
+    resizeCall(t, callback)
   })
-  
 }
 
 exports.resizeArgs = function(options) {
