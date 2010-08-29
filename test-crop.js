@@ -2,14 +2,14 @@ var sys = require('sys'),
     fs = require('fs'),
     im = require('./imagemagick');
 
-var path = 'an_image.jpg';
+var path = '/Users/prototype/Projects/mobilegems.de/lib/mobilegems/models/../../../public/images/Picture/3/original.jpeg';
 var timeStarted = new Date;
 
 im.crop({
   srcPath: path,
-  dstPath: path + '.cropped.jpg',
-  width: 700,
-  height: 400,
+  dstPath: 'cropped.jpg',
+  width: 2000,
+  height: 900,
   quality: 1
 }, function(err, stdout, stderr){
   if (err) return sys.error(err.stack || err);

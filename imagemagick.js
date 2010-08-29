@@ -215,32 +215,36 @@ exports.crop = function(options, callback) {
 
   exports.identify(options.srcPath, function(err, meta) {
     if(err) throw new Error(err.message)
-    
-    var t           = exports.resizeArgs(options),
-        resizeArg   = (meta.width < meta.height) ? (t.opt.width + "x") : ("x" + t.opt.height),
-        args        = [],
-        ignoreArg = false
-        
+
+    var t         = exports.resizeArgs(options),
+        ignoreArg = false,
+        args      = []
+
     t.args.forEach(function(arg) {
       // ignoreArg is set when resize flag was found
       if(!ignoreArg && (arg != '-resize')) args.push(arg)
-      
       // found resize flag! ignore the next argument
       if(arg == '-resize') ignoreArg = true
-      
       // found the argument after the resize flag; ignore it and set crop options
       if((arg != "-resize") && ignoreArg) {
-        ignoreArg = false
-        
-        args.push("-size")
-        args.push(resizeArg)
-        args.push('-gravity')
-        args.push('center')
-        args.push('-crop')
-        args.push(t.opt.width + "x" + t.opt.height + "+0+0")
+        var dSrc      = meta.width / meta.height,
+            dDst      = t.opt.width / t.opt.height,
+            resizeTo  = ((dSrc < dDst) ? t.opt.width.toString() + "x" : "x" + t.opt.height.toString())
+      
+        args.push("-resize")
+        args.push(resizeTo)
+        args.push("-gravity")
+        args.push("Center")
+        args.push("-crop")
+        args.push(t.opt.width.toString() + "x" + t.opt.height.toString() + "+0+0")
         args.push("+repage")
+
+        ignoreArg = false
       }
     })
+    console.log("")
+    console.log("convert " + args.join(" "))
+    console.log("")
     t.args = args
     resizeCall(t, callback)
   })
