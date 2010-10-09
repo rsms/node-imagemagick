@@ -2,6 +2,10 @@
 
 [Imagemagick](http://www.imagemagick.org/) module for [Node](http://nodejs.org/).
 
+You can install this module using [npm](http://github.com/isaacs/npm):
+
+    npm install imagemagick
+
 ## Example
 
     var im = require('imagemagick');
