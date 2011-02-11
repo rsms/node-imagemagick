@@ -138,7 +138,7 @@ Example:
 
 ## License (MIT)
 
-Copyright (c) 2010 Rasmus Andersson <http://hunch.se/>
+Copyright (c) 2010-2011 Rasmus Andersson <http://hunch.se/>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

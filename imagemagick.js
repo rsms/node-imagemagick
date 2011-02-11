@@ -207,44 +207,45 @@ exports.resize = function(options, callback) {
   return resizeCall(t, callback)
 }
 
-exports.crop = function(options, callback) {
-  if (typeof options !== 'object') throw new Error('First argument must be an object!')
-  if(!options.srcPath) throw new Error("No srcPath defined!")
-  if(!options.dstPath) throw new Error("No dstPath defined!")
-  if(!options.height && !options.width) throw new Error("No width or height defined!")
+exports.crop = function (options, callback) {
+  if (typeof options !== 'object')
+    throw new TypeError('First argument must be an object');
+  if (!options.srcPath)
+    throw new TypeError("No srcPath defined");
+  if (!options.dstPath)
+    throw new TypeError("No dstPath defined");
+  if (!options.height && !options.width)
+    throw new TypeError("No width or height defined");
 
   exports.identify(options.srcPath, function(err, meta) {
-    if(err) throw new Error(err.message)
-
+    if (err) return callback && callback(err);
     var t         = exports.resizeArgs(options),
         ignoreArg = false,
-        args      = []
-
-    t.args.forEach(function(arg) {
+        args      = [];
+    t.args.forEach(function (arg) {
       // ignoreArg is set when resize flag was found
-      if(!ignoreArg && (arg != '-resize')) args.push(arg)
+      if (!ignoreArg && (arg != '-resize'))
+        args.push(arg);
       // found resize flag! ignore the next argument
-      if(arg == '-resize') ignoreArg = true
+      if (arg == '-resize')
+        ignoreArg = true;
       // found the argument after the resize flag; ignore it and set crop options
-      if((arg != "-resize") && ignoreArg) {
+      if ((arg != "-resize") && ignoreArg) {
         var dSrc      = meta.width / meta.height,
             dDst      = t.opt.width / t.opt.height,
-            resizeTo  = ((dSrc < dDst) ? t.opt.width.toString() + "x" : "x" + t.opt.height.toString())
-      
-        args.push("-resize")
-        args.push(resizeTo)
-        args.push("-gravity")
-        args.push("Center")
-        args.push("-crop")
-        args.push(t.opt.width.toString() + "x" + t.opt.height.toString() + "+0+0")
-        args.push("+repage")
-
-        ignoreArg = false
+            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height;
+        args = args.concat([
+          '-resize', resizeTo,
+          '-gravity', 'Center',
+          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
+          '+repage'
+        ]);
+        ignoreArg = false;
       }
     })
 
-    t.args = args
-    resizeCall(t, callback)
+    t.args = args;
+    resizeCall(t, callback);
   })
 }
 
