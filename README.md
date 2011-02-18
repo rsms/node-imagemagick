@@ -11,7 +11,7 @@ You can install this module using [npm](http://github.com/isaacs/npm):
     var im = require('imagemagick');
     im.readMetadata('kittens.jpg', function(err, metadata){
       if (err) throw err;
-      sys.puts('Shot at '+metadata.exif.dateTimeOriginal);
+      console.log('Shot at '+metadata.exif.dateTimeOriginal);
     })
     // -> Shot at Tue, 06 Feb 2007 21:13:54 GMT
 
@@ -33,7 +33,7 @@ Example:
 
     im.identify('kittens.jpg', function(err, features){
       if (err) throw err
-      sys.p(features)
+      console.log(features)
       // { format: 'JPEG', width: 3904, height: 2622, depth: 8 }
     })
 
@@ -45,7 +45,7 @@ Example:
 
     im.identify(['-format', '%wx%h', 'kittens.jpg'], function(err, output){
       if (err) throw err
-      sys.puts('dimension: '+output)
+      console.log('dimension: '+output)
       // dimension: 3904x2622
     })
 
@@ -57,7 +57,7 @@ Example:
 
     im.readMetadata('kittens.jpg', function(err, metadata){
       if (err) throw err
-      sys.puts('Shot at '+metadata.exif.dateTimeOriginal)
+      console.log('Shot at '+metadata.exif.dateTimeOriginal)
     })
     // -> Shot at Tue, 06 Feb 2007 21:13:54 GMT
 
@@ -71,7 +71,7 @@ Example:
     im.convert(['kittens.jpg', '-resize', '25x120', 'kittens-small.jpg'], 
     function(err, metadata){
       if (err) throw err
-      sys.puts('stdout: '+sys.inspect(stdout));
+      console.log('stdout:', stdout);
     })
 
 ### resize(options, callback(err, stdout, stderr))
@@ -106,7 +106,7 @@ Example:
       width:   256
     }, function(err, stdout, stderr){
       if (err) throw err
-      sys.puts('resized kittens.jpg to fit within 256x256px')
+      console.log('resized kittens.jpg to fit within 256x256px')
     });
 
 Example with stdin/stdout:
@@ -118,7 +118,7 @@ Example with stdin/stdout:
     }, function(err, stdout, stderr){
       if (err) throw err
       fs.writeFileSync('kittens-resized.jpg', stdout, 'binary');
-      sys.puts('resized kittens.jpg to fit within 256x256px')
+      console.log('resized kittens.jpg to fit within 256x256px')
     });
 
 ### crop(options, callback) ###
