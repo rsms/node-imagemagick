@@ -69,7 +69,7 @@ function exec2(file, args /*, options, callback */) {
       if (callback) callback(e, stdout, stderr);
     }
   });
-  
+
   return child;
 };
 
@@ -105,9 +105,13 @@ exports.identify = function(pathOrArgs, callback) {
     callback(err, result);
   });
   if (isData) {
-    proc.stdin.setEncoding('binary');
-    proc.stdin.write(pathOrArgs.data, 'binary');
-    proc.stdin.end();
+    if ('string' === typeof pathOrArgs.data) {
+      proc.stdin.setEncoding('binary');
+      proc.stdin.write(pathOrArgs.data, 'binary');
+      proc.stdin.end();
+    } else {
+      proc.stdin.end(pathOrArgs.data);
+    }
   }
   return proc;
 }
@@ -143,7 +147,7 @@ var exifFieldConverters = {
   saturation:Number, sharpness:Number, subjectDistanceRange:Number,
   subSecTime:Number, subSecTimeDigitized:Number, subSecTimeOriginal:Number,
   whiteBalance:Number, sceneCaptureType:Number,
-  
+
   // Dates
   dateTime:ExifDate, dateTimeDigitized:ExifDate, dateTimeOriginal:ExifDate
 };
@@ -195,9 +199,13 @@ var resizeCall = function(t, callback) {
     callback(err, stdout, stderr);
   });
   if (t.opt.srcPath.match(/-$/)) {
-    proc.stdin.setEncoding('binary');
-    proc.stdin.write(t.opt.srcData, 'binary');
-    proc.stdin.end();
+    if ('string' === typeof t.opt.srcData) {
+      proc.stdin.setEncoding('binary');
+      proc.stdin.write(t.opt.srcData, 'binary');
+      proc.stdin.end();
+    } else {
+      proc.stdin.end(t.opt.srcData);
+    }
   }
   return proc;
 }
