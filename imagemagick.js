@@ -85,6 +85,9 @@ exports.identify = function(pathOrArgs, callback) {
     args[args.length-1] = '-';
     if (!pathOrArgs.data)
       throw new Error('first argument is missing the "data" member');
+  } else if (typeof pathOrArgs === 'function') {
+    args[0] = '-';
+    callback = pathOrArgs;
   }
   var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
     var result;
