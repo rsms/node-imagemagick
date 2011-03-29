@@ -7,6 +7,7 @@ function exec2(file, args /*, options, callback */) {
                 , timeout: 0
                 , maxBuffer: 500*1024
                 , killSignal: 'SIGKILL'
+                , output: null
                 };
 
   var callback = arguments[arguments.length-1];
@@ -20,7 +21,8 @@ function exec2(file, args /*, options, callback */) {
   }
 
   var child = childproc.spawn(file, args);
-  var stdout = "";
+  var outputToStream = options.output != null;
+  var stdout = outputToStream ? options.output : "";
   var stderr = "";
   var killed = false;
   var timedOut = false;
@@ -41,7 +43,11 @@ function exec2(file, args /*, options, callback */) {
   child.stderr.setEncoding(options.encoding);
 
   child.stdout.addListener("data", function (chunk) {
-    stdout += chunk;
+    if (outputToStream) {
+      stdout.write(chunk, options.encoding);
+    } else {
+      stdout += chunk;
+    }
     if (!killed && stdout.length > options.maxBuffer) {
       child.kill(options.killSignal);
       killed = true;
@@ -59,7 +65,14 @@ function exec2(file, args /*, options, callback */) {
   child.addListener("exit", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
-      if (callback) callback(null, stdout, stderr);
+      if (callback) {
+        if (outputToStream) {
+          stdout.end();
+          callback(null, stderr);
+        } else {
+          callback(null, stdout, stderr);
+        }
+      }
     } else {
       var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
       e.timedOut = timedOut;
@@ -183,7 +196,7 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, callback) {
+exports.convert = function(args, timeout, output, callback) {
   var procopt = {encoding: 'binary'};
   if (typeof timeout === 'function') {
     callback = timeout;
@@ -191,6 +204,7 @@ exports.convert = function(args, timeout, callback) {
   } else if (typeof timeout !== 'number') {
     timeout = 0;
   }
+  procopt.output = output;
   if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
@@ -198,7 +212,7 @@ exports.convert = function(args, timeout, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
-  var proc = exports.convert(t.args, t.opt.timeout, function(err, stdout, stderr) {
+  var proc = exports.convert(t.args, t.opt.timeout, t.opt.destination, function(err, stdout, stderr) {
     callback(err, stdout, stderr);
   });
   if (t.opt.srcPath.match(/-$/)) {
@@ -266,6 +280,7 @@ exports.resizeArgs = function(options) {
     srcData: null,
     srcFormat: null,
     dstPath: null,
+    destination: null,
     quality: 0.8,
     format: 'jpg',
     progressive: false,
@@ -291,7 +306,7 @@ exports.resizeArgs = function(options) {
   if (!opt.srcPath) {
     opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-');
   }
-  if (!opt.dstPath)
+  if (!opt.dstPath || opt.destination)
     opt.dstPath = (opt.format ? opt.format+':-' : '-'); // stdout
   if (opt.width === 0 && opt.height === 0)
     throw new Error('both width and height can not be 0 (zero)');
