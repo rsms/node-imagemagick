@@ -21,11 +21,40 @@ function exec2(file, args /*, options, callback */) {
   }
 
   var child = childproc.spawn(file, args);
-  var outputToStream = options.output != null;
-  var stdout = outputToStream ? options.output : "";
-  var stderr = "";
   var killed = false;
   var timedOut = false;
+
+  var Wrapper = function(output) {
+    this.stdout = output;
+    this.stderr = new Accumulator();
+  };
+  Wrapper.prototype.out = function(chunk, encoding) { this.stdout.write(chunk, encoding); };
+  Wrapper.prototype.err = function(chunk, encoding) { this.stderr.write(chunk, encoding); };
+  Wrapper.prototype.finish = function(err) {
+    this.stdout.end();
+    return [err, this.stderr.current()];
+  };
+
+  var Accumulator = function() {
+    this.stdout = {contents: ""};
+    this.stderr = {contents: ""};
+
+    var limitedWrite = function(stream) {
+      return function(chunk) {
+        stream.contents += chunk;
+        if (!killed && stream.contents.length > options.maxBuffer) {
+          child.kill(options.killSignal);
+          killed = true;
+        }
+      };
+    };
+    this.out = limitedWrite(this.stdout);
+    this.err = limitedWrite(this.stderr);
+  };
+  Accumulator.prototype.current = function() { return this.stdout.contents; }
+  Accumulator.prototype.finish = function(err) { return [err, this.stdout.contents, this.stderr.contents]; };
+
+  var std = options.output != null ? new Wrapper(options.output) : new Accumulator();
 
   var timeoutId;
   if (options.timeout > 0) {
@@ -42,44 +71,20 @@ function exec2(file, args /*, options, callback */) {
   child.stdout.setEncoding(options.encoding);
   child.stderr.setEncoding(options.encoding);
 
-  child.stdout.addListener("data", function (chunk) {
-    if (outputToStream) {
-      stdout.write(chunk, options.encoding);
-    } else {
-      stdout += chunk;
-    }
-    if (!killed && stdout.length > options.maxBuffer) {
-      child.kill(options.killSignal);
-      killed = true;
-    }
-  });
-
-  child.stderr.addListener("data", function (chunk) {
-    stderr += chunk;
-    if (!killed && stderr.length > options.maxBuffer) {
-      child.kill(options.killSignal);
-      killed = true
-    }
-  });
+  child.stdout.addListener("data", function (chunk) { std.out(chunk, options.encoding); });
+  child.stderr.addListener("data", function (chunk) { std.err(chunk, options.encoding); });
 
   child.addListener("exit", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
-      if (callback) {
-        if (outputToStream) {
-          stdout.end();
-          callback(null, stderr);
-        } else {
-          callback(null, stdout, stderr);
-        }
-      }
+      if (callback) callback.apply(undefined, std.finish(null));
     } else {
       var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
       e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
       e.signal = signal;
-      if (callback) callback(e, stdout, stderr);
+      if (callback) callback.apply(undefined, std.finish(e));
     }
   });
 
