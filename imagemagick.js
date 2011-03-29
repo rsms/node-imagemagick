@@ -32,7 +32,7 @@ function exec2(file, args /*, options, callback */) {
   Wrapper.prototype.err = function(chunk, encoding) { this.stderr.write(chunk, encoding); };
   Wrapper.prototype.finish = function(err) {
     this.stdout.end();
-    return [err, this.stderr.current()];
+    return [this.stderr.current()];
   };
 
   var Accumulator = function() {
@@ -52,7 +52,7 @@ function exec2(file, args /*, options, callback */) {
     this.err = limitedWrite(this.stderr);
   };
   Accumulator.prototype.current = function() { return this.stdout.contents; }
-  Accumulator.prototype.finish = function(err) { return [err, this.stdout.contents, this.stderr.contents]; };
+  Accumulator.prototype.finish = function(err) { return [this.stdout.contents, this.stderr.contents]; };
 
   var std = options.output != null ? new Wrapper(options.output) : new Accumulator();
 
@@ -77,14 +77,14 @@ function exec2(file, args /*, options, callback */) {
   child.addListener("exit", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
-      if (callback) callback.apply(undefined, std.finish(null));
+      if (callback) callback.apply(undefined, [null].concat(std.finish()));
     } else {
       var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
       e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
       e.signal = signal;
-      if (callback) callback.apply(undefined, std.finish(e));
+      if (callback) callback.apply(undefined, [e].concat(std.finish()));
     }
   });
 
