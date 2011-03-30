@@ -27,9 +27,9 @@ function exec2(file, args /*, options, callback */) {
   var Wrapper = function(output) {
     this.stdout = output;
     this.stderr = new Accumulator();
+    this.out = this.stdout.write.bind(this.stdout);
+    this.err = this.stderr.out.bind(this.stderr);
   };
-  Wrapper.prototype.out = function(chunk, encoding) { this.stdout.write(chunk, encoding); };
-  Wrapper.prototype.err = function(chunk, encoding) { this.stderr.write(chunk, encoding); };
   Wrapper.prototype.finish = function(err) {
     this.stdout.end();
     return [this.stderr.current()];
