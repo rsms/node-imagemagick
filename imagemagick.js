@@ -1,5 +1,6 @@
 var sys = require('sys'),
-    childproc = require('child_process');
+    childproc = require('child_process'),
+    EventEmitter = require('events').EventEmitter;
 
 
 function exec2(file, args /*, options, callback */) {
@@ -11,6 +12,7 @@ function exec2(file, args /*, options, callback */) {
                 };
 
   var callback = arguments[arguments.length-1];
+  if ('function' != typeof callback) callback = null;
 
   if (typeof arguments[2] == 'object') {
     var keys = Object.keys(options);
@@ -24,15 +26,16 @@ function exec2(file, args /*, options, callback */) {
   var killed = false;
   var timedOut = false;
 
-  var Wrapper = function(output) {
-    this.stdout = output;
+  var Wrapper = function(proc) {
+    this.proc = proc;
     this.stderr = new Accumulator();
-    this.out = this.stdout.write.bind(this.stdout);
+    proc.emitter = new EventEmitter();
+    proc.on = proc.emitter.on.bind(proc.emitter);
+    this.out = proc.emitter.emit.bind(proc.emitter, 'data');
     this.err = this.stderr.out.bind(this.stderr);
   };
   Wrapper.prototype.finish = function(err) {
-    this.stdout.end();
-    return [this.stderr.current()];
+    return this.proc.emitter.emit('end', err, this.stderr.current());
   };
 
   var Accumulator = function() {
@@ -52,9 +55,9 @@ function exec2(file, args /*, options, callback */) {
     this.err = limitedWrite(this.stderr);
   };
   Accumulator.prototype.current = function() { return this.stdout.contents; }
-  Accumulator.prototype.finish = function(err) { return [this.stdout.contents, this.stderr.contents]; };
+  Accumulator.prototype.finish = function(err) { return [err, this.stdout.contents, this.stderr.contents]; };
 
-  var std = options.output != null ? new Wrapper(options.output) : new Accumulator();
+  var std = callback ? new Accumulator() : new Wrapper(child);
 
   var timeoutId;
   if (options.timeout > 0) {
@@ -76,15 +79,18 @@ function exec2(file, args /*, options, callback */) {
 
   child.addListener("exit", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
+    var params;
     if (code === 0 && signal === null) {
-      if (callback) callback.apply(undefined, [null].concat(std.finish()));
+      params = std.finish(null);
+      if (callback) callback.apply(undefined, params);
     } else {
       var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
+      params = std.finish(e);
       e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
       e.signal = signal;
-      if (callback) callback.apply(undefined, [e].concat(std.finish()));
+      if (callback) callback.apply(undefined, params);
     }
   });
 
@@ -217,9 +223,7 @@ exports.convert = function(args, timeout, output, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
-  var proc = exports.convert(t.args, t.opt.timeout, t.opt.destination, function(err, stdout, stderr) {
-    callback(err, stdout, stderr);
-  });
+  var proc = exports.convert(t.args, t.opt.timeout, t.opt.destination, callback);
   if (t.opt.srcPath.match(/-$/)) {
     if ('string' === typeof t.opt.srcData) {
       proc.stdin.setEncoding('binary');
