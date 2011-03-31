@@ -205,7 +205,7 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, output, callback) {
+exports.convert = function(args, timeout, callback) {
   var procopt = {encoding: 'binary'};
   if (typeof timeout === 'function') {
     callback = timeout;
@@ -213,7 +213,6 @@ exports.convert = function(args, timeout, output, callback) {
   } else if (typeof timeout !== 'number') {
     timeout = 0;
   }
-  procopt.output = output;
   if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
@@ -221,7 +220,7 @@ exports.convert = function(args, timeout, output, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
-  var proc = exports.convert(t.args, t.opt.timeout, t.opt.destination, callback);
+  var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
     if ('string' === typeof t.opt.srcData) {
       proc.stdin.setEncoding('binary');
@@ -287,7 +286,6 @@ exports.resizeArgs = function(options) {
     srcData: null,
     srcFormat: null,
     dstPath: null,
-    destination: null,
     quality: 0.8,
     format: 'jpg',
     progressive: false,
@@ -313,7 +311,7 @@ exports.resizeArgs = function(options) {
   if (!opt.srcPath) {
     opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-');
   }
-  if (!opt.dstPath || opt.destination)
+  if (!opt.dstPath)
     opt.dstPath = (opt.format ? opt.format+':-' : '-'); // stdout
   if (opt.width === 0 && opt.height === 0)
     throw new Error('both width and height can not be 0 (zero)');
