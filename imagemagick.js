@@ -299,10 +299,10 @@ exports.resizeArgs = function(options) {
     args.push('-strip');
   }
   if (opt.width || opt.height) {
-    if (opt.height === 0) opt.height = opt.width;
-    else if (opt.width === 0) opt.width = opt.height;
     args.push('-resize');
-    args.push(String(opt.width)+'x'+String(opt.height));
+    if (opt.height === 0) args.push(String(opt.width));
+    else if (opt.width === 0) args.push('x'+String(opt.height));
+    else args.push(String(opt.width)+'x'+String(opt.height));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
