@@ -121,9 +121,9 @@ function parseIdentify(input) {
       }
       if (comps.length < 2) {
         props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim()] = {};
+        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
-        prop[comps[0].trim()] = comps[1].trim();
+        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
       }
       prevIndent = indent;
     }
@@ -147,20 +147,19 @@ exports.identify = function(pathOrArgs, callback) {
     callback = pathOrArgs;
   }
   var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
-    var result;
+    var result, geometry;
     if (!err) {
       if (isCustom) {
         result = stdout;
       } else {
-        var properties = parseIdentify(stdout),
-            geometry = properties['Geometry'].split(/x/);
-        result = {
-          format: properties['Format'],
-          width: parseInt(geometry[0]),
-          height: parseInt(geometry[1]),
-          depth: parseInt(properties['Depth']),
-          quality: parseInt(properties['Quality']) / 100,
-        };
+        result = parseIdentify(stdout);
+        geometry = result['geometry'].split(/x/);
+
+        result.format = result.format.match(/\S*/)[0]
+        result.width = parseInt(geometry[0]);
+        result.height = parseInt(geometry[1]);
+        result.depth = parseInt(result.depth);
+        result.quality = parseInt(result.quality) / 100;
       }
     }
     callback(err, result);
