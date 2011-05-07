@@ -99,7 +99,7 @@ function parseIdentify(input) {
         props.push(prop);
         prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim().toLowerCase();
+        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
       }
       prevIndent = indent;
     }
