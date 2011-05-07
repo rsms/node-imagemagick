@@ -131,7 +131,7 @@ exports.identify = function(pathOrArgs, callback) {
           format: properties['Format'],
           width: parseInt(geometry[0]),
           height: parseInt(geometry[1]),
-          depth: properties['Depth'],
+          depth: parseInt(properties['Depth']),
         };
       }
     }
