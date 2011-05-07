@@ -69,15 +69,48 @@ function exec2(file, args /*, options, callback */) {
       if (callback) callback(e, stdout, stderr);
     }
   });
-  
+
   return child;
 };
 
 
+function parseIdentify(input) {
+  var lines = input.split("\n"),
+      prop = {},
+      props = [prop],
+      prevIndent = 0,
+      indents = [indent],
+      currentLine, comps, indent;
+
+  lines.shift(); //drop first line (Image: name.jpg)
+
+  for (i in lines) {
+    currentLine = lines[i];
+    if (currentLine.length > 0) {
+      indent = currentLine.search(/\S/);
+      comps = currentLine.split(': ');
+      if (indent > prevIndent) indents.push(indent);
+      while (indent < prevIndent) {
+        indents.pop();
+        prop = props.pop();
+        prevIndent = indents[indents.length - 1];
+      }
+      if (comps.length < 2) {
+        props.push(prop);
+        prop = prop[currentLine.split(':')[0].trim()] = {};
+      } else {
+        prop[comps[0].trim()] = comps[1].trim();
+      }
+      prevIndent = indent;
+    }
+  }
+  return props[0];
+};
+
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
       isData,
-      args = isCustom ? ([]).concat(pathOrArgs) : [pathOrArgs];
+      args = isCustom ? ([]).concat(pathOrArgs) : ['-verbose', pathOrArgs];
 
   if (typeof args[args.length-1] === 'object') {
     isData = true;
@@ -92,13 +125,13 @@ exports.identify = function(pathOrArgs, callback) {
       if (isCustom) {
         result = stdout;
       } else {
-        var v = stdout.split(/ +/),
-            x = v[2].split(/x/);
+        var properties = parseIdentify(stdout),
+            geometry = properties['Geometry'].split(/x/);
         result = {
-          format: v[1],
-          width: parseInt(x[0]),
-          height: parseInt(x[1]),
-          depth: parseInt(v[4]),
+          format: properties['Format'],
+          width: parseInt(geometry[0]),
+          height: parseInt(geometry[1]),
+          depth: properties['Depth'],
         };
       }
     }
@@ -143,7 +176,7 @@ var exifFieldConverters = {
   saturation:Number, sharpness:Number, subjectDistanceRange:Number,
   subSecTime:Number, subSecTimeDigitized:Number, subSecTimeOriginal:Number,
   whiteBalance:Number, sceneCaptureType:Number,
-  
+
   // Dates
   dateTime:ExifDate, dateTimeDigitized:ExifDate, dateTimeOriginal:ExifDate
 };
