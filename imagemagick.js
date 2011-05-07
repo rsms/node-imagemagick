@@ -132,7 +132,7 @@ exports.identify = function(pathOrArgs, callback) {
         result.width = parseInt(geometry[0]);
         result.height = parseInt(geometry[1]);
         result.depth = parseInt(result.depth);
-        result.quality = parseInt(result.quality) / 100;
+        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
       }
     }
     callback(err, result);
