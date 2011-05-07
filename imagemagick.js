@@ -128,6 +128,7 @@ exports.identify = function(pathOrArgs, callback) {
         result = parseIdentify(stdout);
         geometry = result['geometry'].split(/x/);
 
+        result.format = result.format.match(/\S*/)[0]
         result.width = parseInt(geometry[0]);
         result.height = parseInt(geometry[1]);
         result.depth = parseInt(result.depth);
