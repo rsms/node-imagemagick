@@ -1,5 +1,6 @@
 var sys = require('sys'),
-    childproc = require('child_process');
+    childproc = require('child_process'),
+    EventEmitter = require('events').EventEmitter;
 
 
 function exec2(file, args /*, options, callback */) {
@@ -7,9 +8,11 @@ function exec2(file, args /*, options, callback */) {
                 , timeout: 0
                 , maxBuffer: 500*1024
                 , killSignal: 'SIGKILL'
+                , output: null
                 };
 
   var callback = arguments[arguments.length-1];
+  if ('function' != typeof callback) callback = null;
 
   if (typeof arguments[2] == 'object') {
     var keys = Object.keys(options);
@@ -20,10 +23,44 @@ function exec2(file, args /*, options, callback */) {
   }
 
   var child = childproc.spawn(file, args);
-  var stdout = "";
-  var stderr = "";
   var killed = false;
   var timedOut = false;
+
+  var Wrapper = function(proc) {
+    this.proc = proc;
+    this.stderr = new Accumulator();
+    proc.emitter = new EventEmitter();
+    proc.on = proc.emitter.on.bind(proc.emitter);
+    this.out = proc.emitter.emit.bind(proc.emitter, 'data');
+    this.err = this.stderr.out.bind(this.stderr);
+    this.errCurrent = this.stderr.current.bind(this.stderr);
+  };
+  Wrapper.prototype.finish = function(err) {
+    this.proc.emitter.emit('end', err, this.errCurrent());
+  };
+
+  var Accumulator = function(cb) {
+    this.stdout = {contents: ""};
+    this.stderr = {contents: ""};
+    this.callback = cb;
+
+    var limitedWrite = function(stream) {
+      return function(chunk) {
+        stream.contents += chunk;
+        if (!killed && stream.contents.length > options.maxBuffer) {
+          child.kill(options.killSignal);
+          killed = true;
+        }
+      };
+    };
+    this.out = limitedWrite(this.stdout);
+    this.err = limitedWrite(this.stderr);
+  };
+  Accumulator.prototype.current = function() { return this.stdout.contents; };
+  Accumulator.prototype.errCurrent = function() { return this.stderr.contents; };
+  Accumulator.prototype.finish = function(err) { this.callback(err, this.stdout.contents, this.stderr.contents); };
+
+  var std = callback ? new Accumulator(callback) : new Wrapper(child);
 
   var timeoutId;
   if (options.timeout > 0) {
@@ -40,33 +77,20 @@ function exec2(file, args /*, options, callback */) {
   child.stdout.setEncoding(options.encoding);
   child.stderr.setEncoding(options.encoding);
 
-  child.stdout.addListener("data", function (chunk) {
-    stdout += chunk;
-    if (!killed && stdout.length > options.maxBuffer) {
-      child.kill(options.killSignal);
-      killed = true;
-    }
-  });
-
-  child.stderr.addListener("data", function (chunk) {
-    stderr += chunk;
-    if (!killed && stderr.length > options.maxBuffer) {
-      child.kill(options.killSignal);
-      killed = true
-    }
-  });
+  child.stdout.addListener("data", function (chunk) { std.out(chunk, options.encoding); });
+  child.stderr.addListener("data", function (chunk) { std.err(chunk, options.encoding); });
 
   child.addListener("exit", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
-      if (callback) callback(null, stdout, stderr);
+      std.finish(null);
     } else {
-      var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + stderr);
+      var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + std.errCurrent());
       e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
       e.signal = signal;
-      if (callback) callback(e, stdout, stderr);
+      std.finish(e);
     }
   });
 
@@ -118,6 +142,9 @@ exports.identify = function(pathOrArgs, callback) {
     args[args.length-1] = '-';
     if (!pathOrArgs.data)
       throw new Error('first argument is missing the "data" member');
+  } else if (typeof pathOrArgs === 'function') {
+    args[args.length-1] = '-';
+    callback = pathOrArgs;
   }
   var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
     var result, geometry;
@@ -138,9 +165,13 @@ exports.identify = function(pathOrArgs, callback) {
     callback(err, result);
   });
   if (isData) {
-    proc.stdin.setEncoding('binary');
-    proc.stdin.write(pathOrArgs.data, 'binary');
-    proc.stdin.end();
+    if ('string' === typeof pathOrArgs.data) {
+      proc.stdin.setEncoding('binary');
+      proc.stdin.write(pathOrArgs.data, 'binary');
+      proc.stdin.end();
+    } else {
+      proc.stdin.end(pathOrArgs.data);
+    }
   }
   return proc;
 }
@@ -224,13 +255,15 @@ exports.convert = function(args, timeout, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
-  var proc = exports.convert(t.args, t.opt.timeout, function(err, stdout, stderr) {
-    callback(err, stdout, stderr);
-  });
+  var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
-    proc.stdin.setEncoding('binary');
-    proc.stdin.write(t.opt.srcData, 'binary');
-    proc.stdin.end();
+    if ('string' === typeof t.opt.srcData) {
+      proc.stdin.setEncoding('binary');
+      proc.stdin.write(t.opt.srcData, 'binary');
+      proc.stdin.end();
+    } else {
+      proc.stdin.end(t.opt.srcData);
+    }
   }
   return proc;
 }
