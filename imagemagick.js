@@ -251,8 +251,7 @@ exports.convert = function(args, procopts, callback) {
     var timeout = procopts;
     procopts = {};
     if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
-      procopts.timeout: timeout;
-    }
+      procopts.timeout = timeout;
   }
   procopts.encoding = 'binary';
   
