@@ -25,6 +25,10 @@ Path to the `convert` program. Defaults to `"convert"`.
 
 Path to the `identify` program. Defaults to `"identify"`.
 
+### montage.path
+
+Path to the `montage` program. Defaults to `"montage"`.
+
 ### identify(path, callback(err, features))
 
 Identify file at `path` and return an object `features`.
@@ -135,6 +139,18 @@ Example:
     }, function(err, stdout, stderr){
       // foo
     })
+
+### montage(args, callback(err, stdout, stderr))
+
+Raw interface to `montage` passing arguments in the array `args`.
+
+Example:
+
+    im.montage(['images/*.png', '-geometry', '+0+0', 'sprites.png'],
+    function(err, metadata){
+        if (err) throw err
+        console.log('stdout:', stdout);
+    });
 
 ## License (MIT)
 
