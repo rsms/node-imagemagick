@@ -254,6 +254,20 @@ exports.convert = function(args, timeout, callback) {
 }
 exports.convert.path = 'convert';
 
+exports.composite = function(args, timeout, callback) {
+  var procopt = {encoding: 'binary'};
+  if (typeof timeout === 'function') {
+    callback = timeout;
+    timeout = 0;
+  } else if (typeof timeout !== 'number') {
+    timeout = 0;
+  }
+  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
+    procopt.timeout = timeout;
+  return exec2(exports.composite.path, args, procopt, callback);
+}
+exports.composite.path = 'composite';
+
 var resizeCall = function(t, callback) {
   var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
