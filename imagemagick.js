@@ -128,7 +128,7 @@ function parseIdentify(input) {
       prevIndent = indent;
     }
   }
-  return props[0];
+  return prop;
 };
 
 exports.identify = function(pathOrArgs, callback) {
@@ -299,16 +299,25 @@ exports.crop = function (options, callback) {
       if ((arg != "-resize") && ignoreArg) {
         var dSrc      = meta.width / meta.height,
             dDst      = t.opt.width / t.opt.height,
-            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height;
-        args = args.concat([
-          '-resize', resizeTo,
-          '-gravity', 'Center',
-          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
-          '+repage'
-        ]);
+            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height,
+            offset    = options.offset ? options.offset : {x : 0, y : 0},
+            offsetStr = (offset.x >= 0 ? "+"+offset.x : offset.x)+(offset.y >= 0 ? "+"+offset.y : offset.y);
+        if(options.offset){
+            args = args.concat([
+              '-crop', ''+t.opt.width + 'x' + t.opt.height + offsetStr,
+              '+repage'
+            ]);
+        }else{
+            args = args.concat([
+              '-resize', resizeTo,
+              '-gravity', 'Center',
+              '-crop', ''+t.opt.width + 'x' + t.opt.height + "+0+0",
+              '+repage'
+            ]);
+        }
         ignoreArg = false;
       }
-    })
+    });
 
     t.args = args;
     resizeCall(t, callback);
