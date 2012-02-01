@@ -1,5 +1,4 @@
-var sys = require('sys'),
-    childproc = require('child_process'),
+var childproc = require('child_process'),
     EventEmitter = require('events').EventEmitter;
 
 
