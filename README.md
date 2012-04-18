@@ -69,7 +69,7 @@ Raw interface to `convert` passing arguments in the array `args`.
 Example:
 
     im.convert(['kittens.jpg', '-resize', '25x120', 'kittens-small.jpg'], 
-    function(err, metadata){
+    function(err, stdout){
       if (err) throw err
       console.log('stdout:', stdout);
     })
