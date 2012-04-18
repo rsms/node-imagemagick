@@ -301,7 +301,7 @@ exports.crop = function (options, callback) {
             resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height;
         args = args.concat([
           '-resize', resizeTo,
-          '-gravity', 'Center',
+          '-gravity', t.opt.gravity,
           '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
           '+repage'
         ]);
@@ -330,7 +330,8 @@ exports.resizeArgs = function(options) {
     filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
-    timeout: 0
+    timeout: 0,
+    gravity: "Center"
   }
 
   // check options
