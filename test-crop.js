@@ -7,7 +7,7 @@ var timeStarted = new Date;
 
 im.crop({
   srcPath: path,
-  dstPath: 'cropped.jpg',
+  dstPath: path + '.cropped.jpg',
   width: 2000,
   height: 900,
   quality: 1
