@@ -301,8 +301,8 @@ exports.crop = function (options, callback) {
             resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height;
         args = args.concat([
           '-resize', resizeTo,
-          '-gravity', 'Center',
-          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
+          '-gravity', t.opt.gravity,
+          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+' + t.opt.top + '+' + t.opt.left,
           '+repage'
         ]);
         ignoreArg = false;
@@ -326,6 +326,9 @@ exports.resizeArgs = function(options) {
     colorspace: null,
     width: 0,
     height: 0,
+    gravity: 'NorthWest',
+    top: 0,
+    left: 0,
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
