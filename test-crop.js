@@ -1,4 +1,4 @@
-var sys = require('sys'),
+var util = require('util'),
     fs = require('fs'),
     im = require('./imagemagick');
 
@@ -12,12 +12,12 @@ im.crop({
   height: 900,
   quality: 1
 }, function(err, stdout, stderr){
-  if (err) return sys.error(err.stack || err);
-  
-  sys.puts('real time taken for convert: ' + (new Date() - timeStarted) + ' ms')
-  
+  if (err) return util.error(err.stack || err);
+
+  util.puts('real time taken for convert: ' + (new Date() - timeStarted) + ' ms')
+
   im.identify(['-format', '%b', path + '.cropped.jpg'], function(err, r){
     if (err) throw err;
-    sys.puts('size: ' + r.substr(0, r.length-2) + ' Bytes');
+    util.puts('size: ' + r.substr(0, r.length-2) + ' Bytes');
   })
 })
