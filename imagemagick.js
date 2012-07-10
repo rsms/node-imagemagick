@@ -275,25 +275,45 @@ exports.resize = function(options, callback) {
 exports.crop = function (options, callback) {
   if (typeof options !== 'object')
     throw new TypeError('First argument must be an object');
-  if (!options.srcPath)
-    throw new TypeError("No srcPath defined");
+  if (!options.srcPath && !options.srcData)
+    throw new TypeError("No srcPath or data defined");
   if (!options.dstPath)
     throw new TypeError("No dstPath defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
+  
+  if (options.srcPath){
+    var args = options.srcPath;
+  } else {
+    var args = {
+      data: options.srcData
+    };
+  }
 
-  exports.identify(options.srcPath, function(err, meta) {
+  exports.identify(args, function(err, meta) {
     if (err) return callback && callback(err);
     var t         = exports.resizeArgs(options),
         ignoreArg = false,
+        printNext  = false,
         args      = [];
     t.args.forEach(function (arg) {
+      if (printNext === true){
+        console.log("arg", arg);
+        printNext = false;
+      }
       // ignoreArg is set when resize flag was found
       if (!ignoreArg && (arg != '-resize'))
         args.push(arg);
       // found resize flag! ignore the next argument
-      if (arg == '-resize')
+      if (arg == '-resize'){
+        console.log("resize arg");
         ignoreArg = true;
+        printNext = true;
+      }
+      if (arg === "-crop"){
+        console.log("crop arg");
+        printNext = true;
+      }
       // found the argument after the resize flag; ignore it and set crop options
       if ((arg != "-resize") && ignoreArg) {
         var dSrc      = meta.width / meta.height,
