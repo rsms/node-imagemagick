@@ -277,8 +277,6 @@ exports.crop = function (options, callback) {
     throw new TypeError('First argument must be an object');
   if (!options.srcPath && !options.srcData)
     throw new TypeError("No srcPath or data defined");
-  if (!options.dstPath)
-    throw new TypeError("No dstPath defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
   
@@ -363,7 +361,7 @@ exports.resizeArgs = function(options) {
   // normalize options
   if (!opt.format) opt.format = 'jpg';
   if (!opt.srcPath) {
-    opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-');
+    opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-'); // stdin
   }
   if (!opt.dstPath)
     opt.dstPath = (opt.format ? opt.format+':-' : '-'); // stdout
