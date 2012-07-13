@@ -10,6 +10,7 @@ im.crop({
   dstPath: 'cropped.jpg',
   width: 2000,
   height: 900,
+  offset: {x:2, y:2}, // Defaults to 0,0 if offset is not specified.
   quality: 1
 }, function(err, stdout, stderr){
   if (err) return sys.error(err.stack || err);
