@@ -79,7 +79,7 @@ function exec2(file, args /*, options, callback */) {
   child.stdout.addListener("data", function (chunk) { std.out(chunk, options.encoding); });
   child.stderr.addListener("data", function (chunk) { std.err(chunk, options.encoding); });
 
-  child.addListener("exit", function (code, signal) {
+  child.addListener("close", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
       std.finish(null);
