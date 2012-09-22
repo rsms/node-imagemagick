@@ -317,10 +317,11 @@ exports.crop = function (options, callback) {
       if ((arg != "-resize") && ignoreArg) {
         var dSrc      = meta.width / meta.height,
             dDst      = t.opt.width / t.opt.height,
-            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height;
+            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height,
+            dGravity  = options.gravity ? options.gravity : "Center";
         args = args.concat([
           '-resize', resizeTo,
-          '-gravity', 'Center',
+          '-gravity', dGravity,
           '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
           '+repage'
         ]);
