@@ -6,6 +6,8 @@ You can install this module using [npm](http://github.com/isaacs/npm):
 
     npm install imagemagick
 
+Requires imagemagick CLI tools to be installed. There are numerous ways to install them. For instance, if you're on OS X you can use [Homebrew](http://mxcl.github.com/homebrew/): `brew install imagemagick`.
+
 ## Example
 
     var im = require('imagemagick');
@@ -139,7 +141,7 @@ Example:
 
 ## License (MIT)
 
-Copyright (c) 2010-2011 Rasmus Andersson <http://hunch.se/>
+Copyright (c) 2010-2012 Rasmus Andersson <http://hunch.se/>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
