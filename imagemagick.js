@@ -114,7 +114,7 @@ function parseIdentify(input) {
       indent = currentLine.search(/\S/);
       comps = currentLine.split(': ');
       if (indent > prevIndent) indents.push(indent);
-      while (indent < prevIndent) {
+      while (indent < prevIndent && props.length) {
         indents.pop();
         prop = props.pop();
         prevIndent = indents[indents.length - 1];
@@ -128,7 +128,7 @@ function parseIdentify(input) {
       prevIndent = indent;
     }
   }
-  return props[0];
+  return prop;
 };
 
 exports.identify = function(pathOrArgs, callback) {
