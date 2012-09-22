@@ -104,7 +104,7 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       indents = [indent],
-      currentLine, comps, indent;
+      currentLine, comps, indent, i;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
