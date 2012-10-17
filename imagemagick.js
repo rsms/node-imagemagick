@@ -110,8 +110,8 @@ function parseIdentify(input) {
 
   for (i in lines) {
     currentLine = lines[i];
-    if (currentLine.length > 0) {
-      indent = currentLine.search(/\S/);
+    indent = currentLine.search(/\S/);
+    if (indent >= 0) {
       comps = currentLine.split(': ');
       if (indent > prevIndent) indents.push(indent);
       while (indent < prevIndent && props.length) {
