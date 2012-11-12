@@ -141,6 +141,8 @@ im.resize({
 ### crop(options, callback) ###
 Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses _options.srcPath_, so make sure you set it :) Using only _options.width_ or _options.height_ will create a square dimensioned image.  Gravity can also be specified, it defaults to Center.   Available gravity options are [NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast]
 
+You can also specify the top and left coordinates of the crop rectangle within the image by specifying _top_ and _left_ in the options. These MUST be strings!! This is in accordance with ImageMagick's image geometric syntax. _top_ and _left_ each must begin with a _+_ or _-_ followed by an integer representing a pixel offset from the top-left of the original image.
+
 Example:
 
 ```javascript
@@ -149,6 +151,8 @@ im.crop({
   dstPath: 'cropped.jpg',
   width: 800,
   height: 600,
+  top: '+20',
+  left: '+30',
   quality: 1,
   gravity: "North"
 }, function(err, stdout, stderr){
