@@ -319,10 +319,17 @@ exports.crop = function (options, callback) {
             dDst      = t.opt.width / t.opt.height,
             resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height,
             dGravity  = options.gravity ? options.gravity : "Center";
+
+        if(!t.opt.top && !t.opt.left) {
+            // Add -resize flag if this isn't an arbitrary crop rectangle.
+            args = args.concat(['-resize', resizeTo]);
+        } else {
+            // Since this is an arbitrary crop rectange, use -crop instead of -resize.
+            args = args.concat(['-crop', ''+t.opt.width + 'x' + t.opt.height + (t.opt.top ? t.opt.top : '+0') + (t.opt.left ? t.opt.left : '+0')]);
+        }
+
         args = args.concat([
-          '-resize', resizeTo,
           '-gravity', dGravity,
-          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
           '+repage'
         ]);
         ignoreArg = false;
@@ -346,6 +353,8 @@ exports.resizeArgs = function(options) {
     colorspace: null,
     width: 0,
     height: 0,
+    top: 0,
+    left: 0,
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
