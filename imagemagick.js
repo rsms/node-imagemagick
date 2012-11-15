@@ -325,7 +325,7 @@ exports.crop = function (options, callback) {
             args = args.concat(['-resize', resizeTo]);
         } else {
             // Since this is an arbitrary crop rectange, use -crop instead of -resize.
-            args = args.concat(['-crop', ''+t.opt.width + 'x' + t.opt.height + (t.opt.top ? t.opt.top : '+0') + (t.opt.left ? t.opt.left : '+0')]);
+            args = args.concat(['-crop', ''+t.opt.width + 'x' + t.opt.height + (t.opt.left ? t.opt.left : '+0') + (t.opt.top ? t.opt.top : '+0')]);
         }
 
         args = args.concat([
