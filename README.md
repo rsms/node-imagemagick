@@ -139,7 +139,7 @@ im.resize({
 ```
 
 ### crop(options, callback) ###
-Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses _options.srcPath_, so make sure you set it :) Using only _options.width_ or _options.height_ will create a square dimensioned image.  Gravity can also be specified, it defaults to Center.   Available gravity options are [NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast]
+Convenience function for resizing and cropping an image. _crop_ uses the resize method, so _options_ and _callback_ are the same. _crop_ uses _options.srcPath_, so make sure you set it :) Using both _options.width_ and _options.height_ will create a square-dimensioned image; using only _options.width_ or _options.height_ will create a proportionately-dimensioned image.  Gravity can also be specified; it defaults to Center.   Available gravity options are [NorthWest, North, NorthEast, West, Center, East, SouthWest, South, SouthEast].
 
 Example:
 
