@@ -110,7 +110,6 @@ function parseIdentify(input) {
 
   for (i = 0; i < lines.length; i++) {
     currentLine = lines[i];
-    console.log(currentLine);
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
