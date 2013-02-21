@@ -2,7 +2,7 @@ var fs = require('fs'),
     im = require('../imagemagick'),
     assert = require('assert');
 
-var path = __dirname+'/sample-images/blue-bottle-coffee.jpg';
+var path = __dirname+'/fixtures/blue-bottle-coffee.jpg';
 var imdata = fs.readFileSync(path, 'binary');
 
 
