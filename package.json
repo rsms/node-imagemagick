@@ -7,4 +7,7 @@
                   , "url"  : "http://github.com/rsms/node-imagemagick.git" }
 , "engine"      : ["node >=0.6"]
 , "main"        : "imagemagick"
+, "devDependencies": {
+  "mocha": ">= 1.8"
+}
 }
