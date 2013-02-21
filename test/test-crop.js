@@ -1,5 +1,5 @@
 var fs = require('fs'),
-    im = require('./imagemagick');
+    im = require('../imagemagick');
 
 var path = __dirname+'/sample-images/blue-bottle-coffee.jpg';
 
