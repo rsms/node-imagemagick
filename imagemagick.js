@@ -347,7 +347,6 @@ exports.resizeArgs = function(options) {
     width: 0,
     height: 0,
     strip: true,
-    filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
     timeout: 0
