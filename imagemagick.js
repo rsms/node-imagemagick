@@ -100,7 +100,7 @@ function exec2(file, args /*, options, callback */) {
 
 
 function parseIdentify(input) {
-  return imParse(input, {lowerCase: true});
+  return imParse(input, "lower");
 };
 
 exports.identify = function(pathOrArgs, callback) {
