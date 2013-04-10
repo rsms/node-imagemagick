@@ -104,12 +104,12 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       currentLine, comps, indent, i,
-	  indents = [indent];
+      indents = [indent];
 
   lines.shift(); //drop first line (Image: name.jpg)
 
   for (i in lines) {
-	if(lines.hasOwnProperty(i)) {
+    if(lines.hasOwnProperty(i)) {
       currentLine = lines[i];
       indent = currentLine.search(/\S/);
       if (indent >= 0) {
