@@ -110,6 +110,10 @@ function parseIdentify(input) {
 
   for (i in lines) {
     currentLine = lines[i];
+    // Skip xml multiline value. Found on http://beta.images.theglobeandmail.com/media/mobile/images/iphone.icon.highres.png.
+    if (/\s*</i.test(currentLine)) {
+      continue;
+    }
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
