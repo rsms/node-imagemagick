@@ -347,6 +347,7 @@ exports.resizeArgs = function(options) {
     width: 0,
     height: 0,
     strip: true,
+    flags: false,
     filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
@@ -385,9 +386,14 @@ exports.resizeArgs = function(options) {
   }
   if (opt.width || opt.height) {
     args.push('-resize');
-    if (opt.height === 0) args.push(String(opt.width));
-    else if (opt.width === 0) args.push('x'+String(opt.height));
-    else args.push(String(opt.width)+'x'+String(opt.height));
+    var resizeString;
+    if (opt.height === 0) resizeString = String(opt.width);
+    else if (opt.width === 0) resizeString = 'x'+String(opt.height);
+    else resizeString = String(opt.width)+'x'+String(opt.height);
+    if (opt.flags) resizeString += opt.flags.replace(/[\!\>\<]/g, function(chr) {
+        return ((!!process.platform.match(/^win/)) ? '^' : '\\') + chr;
+    });
+    args.push(resizeString);
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
