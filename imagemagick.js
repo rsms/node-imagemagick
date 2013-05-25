@@ -104,12 +104,11 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       indents = [indent],
-      currentLine, comps, indent, i;
+      comps, indent;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
-    currentLine = lines[i];
+  lines.forEach(function(currentLine){
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
@@ -127,7 +126,7 @@ function parseIdentify(input) {
       }
       prevIndent = indent;
     }
-  }
+  });
   return prop;
 };
 
