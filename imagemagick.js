@@ -345,6 +345,7 @@ exports.resizeArgs = function(options) {
     colorspace: null,
     width: 0,
     height: 0,
+    force: false,
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
@@ -386,7 +387,7 @@ exports.resizeArgs = function(options) {
     args.push('-resize');
     if (opt.height === 0) args.push(String(opt.width));
     else if (opt.width === 0) args.push('x'+String(opt.height));
-    else args.push(String(opt.width)+'x'+String(opt.height));
+    else args.push(String(opt.width)+'x'+String(opt.height)+(opt.force?'!':''));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
