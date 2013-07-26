@@ -1,4 +1,9 @@
 var childproc = require('child_process'),
+		Stream = require('stream').Stream,
+		CONST_STREAM_TYPE = {
+			IN: 0,
+			OUT: 1
+		},
     EventEmitter = require('events').EventEmitter;
 
 
@@ -240,18 +245,142 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, callback) {
-  var procopt = {encoding: 'binary'};
-  if (typeof timeout === 'function') {
-    callback = timeout;
-    timeout = 0;
-  } else if (typeof timeout !== 'number') {
-    timeout = 0;
-  }
-  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
-    procopt.timeout = timeout;
-  return exec2(exports.convert.path, args, procopt, callback);
+exports.convert = convert;
+exports.setInputFormat = setInputFormat;
+exports.setOutputFormat = setOutputFormat;
+
+convert.prototype.convert = convert;
+convert.prototype.stream = stream;
+convert.prototype.setInputFormat = setInputFormat;
+convert.prototype.setOutputFormat = setOutputFormat;
+convert.prototype.setStreamFormat = setStreamFormat;
+
+function convert(args, timeout, callback) {
+	var isStream = args instanceof Stream;
+
+	if (isStream || typeof args === 'string') {
+		if (!(this instanceof convert)) {
+			return new convert(args, timeout, callback);
+		}
+
+		this.streamFormats = this.streamFormats || {};
+
+		if (isStream) {
+			this.sourceStream = args;
+
+			this.args = timeout || [];
+		} else {
+			this.setStreamFormat(timeout, args);
+		}
+
+		return this;
+	} else {
+		var procopt = {encoding: 'binary'};
+		if (typeof timeout === 'function') {
+			callback = timeout;
+			timeout = 0;
+		} else if (typeof timeout !== 'number') {
+			timeout = 0;
+		}
+		if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
+			procopt.timeout = timeout;
+		return exec2(exports.convert.path, args, procopt, callback);
+	}
 }
+
+function setInputFormat(format) {
+	// Refer to `setStreamFormat()` below for explanation.
+	if (!(this instanceof convert)) {
+		return new convert(format, CONST_STREAM_TYPE.IN);
+	}
+
+	return this.setStreamFormat(CONST_STREAM_TYPE.IN, format);
+}
+
+function setOutputFormat(format) {
+	// Refer to `setStreamFormat()` below for explanation.
+	if (!(this instanceof convert)) {
+		return new convert(format, CONST_STREAM_TYPE.OUT);
+	}
+
+	return this.setStreamFormat(CONST_STREAM_TYPE.OUT, format);
+}
+
+function setStreamFormat(streamType, format) {
+	// When passing a stream to Imagemagick it is important to give
+	// a hint to IM about the format of the file. When a file name
+	// is passed to IM, it can deduce the file format based on the
+	// the file extension. However, since streams don't carry file
+	// name information, we need to give a hint to IM manually.
+	// So, this `setStreamFormat()` function serves this purpose.
+
+	if (typeof format !== 'string') {
+		throw new Error('File format must be a string');
+	}
+
+	this.streamFormats[streamType] = format;
+
+	return this;
+}
+
+function stream(callback) {
+	// Determine the input file format.
+	// If the input format was set manually, use it and form IM
+	// command like `jpg:-` where `-` at the end tells IM to
+	// read from STDIN and `jpg:` tells what format this stream
+	// is in.
+	// If no format is explicitly set, let IM guess. In this
+	// case just set `-` meaning IM needs to read from STDIN.
+	// Stream information should always come as a first command.
+	this.args.unshift((
+			this.streamFormats[CONST_STREAM_TYPE.IN] ?
+					this.streamFormats[CONST_STREAM_TYPE.IN].toLowerCase() + ':' :
+					'') +
+			'-');
+
+	// The same goes for output stream. However, in this case the
+	// output stream format command should be last.
+	this.args.push((
+			this.streamFormats[CONST_STREAM_TYPE.OUT] ?
+					this.streamFormats[CONST_STREAM_TYPE.OUT].toLowerCase() + ':' :
+					'') +
+			'-');
+
+	var bin = exports.convert.path,
+			child = childproc.spawn(bin, this.args),
+			self = this;
+
+	// Handle streaming errors when IM is not installed.
+	child.stdin.on('error', handlerr);
+	child.stdout.on('error', handlerr);
+
+	function handlerr (err) {
+		if ('EPIPE' == err.code && 'write' == err.syscall) {
+			err.message = '** Have you installed imageMagick? Is it in your PATH? **\n' + err.message;
+		}
+
+		cb(err);
+	}
+
+	if (!this.sourceStream.readable) {
+		return cb(new Error("im().stream() or im().write() with a non-readable stream."));
+	}
+
+	self.sourceStream.pipe(child.stdin);
+
+	cb();
+
+	function cb (err) {
+		if (cb.called) return;
+
+		cb.called = 1;
+
+		callback.call(self, err, child.stdout, child.stderr);
+	}
+
+	return this;
+}
+
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
