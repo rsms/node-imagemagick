@@ -1,3 +1,4 @@
+/*jslint laxcomma:true */
 var childproc = require('child_process'),
     EventEmitter = require('events').EventEmitter;
 
@@ -80,7 +81,7 @@ function exec2(file, args /*, options, callback */) {
   child.stderr.addListener("data", function (chunk) { std.err(chunk, options.encoding); });
 
   var version = process.versions.node.split('.');
-  child.addListener(version[0] == 0 && version[1] < 7 ? "exit" : "close", function (code, signal) {
+  child.addListener(version[0] === 0 && version[1] < 7 ? "exit" : "close", function (code, signal) {
     if (timeoutId) clearTimeout(timeoutId);
     if (code === 0 && signal === null) {
       std.finish(null);
@@ -95,7 +96,7 @@ function exec2(file, args /*, options, callback */) {
   });
 
   return child;
-};
+}
 
 
 function parseIdentify(input) {
@@ -123,13 +124,13 @@ function parseIdentify(input) {
         props.push(prop);
         prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        prop[comps[0].trim().toLowerCase()] = comps[1].trim();
       }
       prevIndent = indent;
     }
   }
   return prop;
-};
+}
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
@@ -153,13 +154,13 @@ exports.identify = function(pathOrArgs, callback) {
         result = stdout;
       } else {
         result = parseIdentify(stdout);
-        geometry = result['geometry'].split(/x/);
+        geometry = result.geometry.split(/x/);
 
-        result.format = result.format.match(/\S*/)[0]
-        result.width = parseInt(geometry[0]);
-        result.height = parseInt(geometry[1]);
-        result.depth = parseInt(result.depth);
-        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+        result.format = result.format.match(/\S*/)[0];
+        result.width = parseInt(geometry[0], 10);
+        result.height = parseInt(geometry[1], 10);
+        result.depth = parseInt(result.depth, 10);
+        if (result.quality !== undefined) result.quality = parseInt(result.quality, 10) / 100;
       }
     }
     callback(err, result);
@@ -174,7 +175,7 @@ exports.identify = function(pathOrArgs, callback) {
     }
   }
   return proc;
-}
+};
 exports.identify.path = 'identify';
 
 function ExifDate(value) {
@@ -201,8 +202,8 @@ var exifFieldConverters = {
   lightSource:Number, meteringMode:Number, orientation:Number,
   photometricInterpretation:Number, planarConfiguration:Number,
   resolutionUnit:Number, rowsPerStrip:Number, samplesPerPixel:Number,
-  sensingMethod:Number, stripByteCounts:Number, subSecTime:Number,
-  subSecTimeDigitized:Number, subSecTimeOriginal:Number, customRendered:Number,
+  sensingMethod:Number, stripByteCounts:Number,
+  customRendered:Number,
   exposureMode:Number, focalLengthIn35mmFilm:Number, gainControl:Number,
   saturation:Number, sharpness:Number, subjectDistanceRange:Number,
   subSecTime:Number, subSecTimeDigitized:Number, subSecTimeOriginal:Number,
@@ -234,11 +235,11 @@ exports.readMetadata = function(path, callback) {
         }
         if (!(typekey in meta)) meta[typekey] = {key:value};
         else meta[typekey][key] = value;
-      })
+      });
     }
     callback(err, meta);
   });
-}
+};
 
 exports.convert = function(args, timeout, callback) {
   var procopt = {encoding: 'binary'};
@@ -248,10 +249,10 @@ exports.convert = function(args, timeout, callback) {
   } else if (typeof timeout !== 'number') {
     timeout = 0;
   }
-  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
+  if (timeout && (timeout = parseInt(timeout, 10)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
-}
+};
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
@@ -266,12 +267,12 @@ var resizeCall = function(t, callback) {
     }
   }
   return proc;
-}
+};
 
 exports.resize = function(options, callback) {
   var t = exports.resizeArgs(options);
-  return resizeCall(t, callback)
-}
+  return resizeCall(t, callback);
+};
 
 exports.crop = function (options, callback) {
   if (typeof options !== 'object')
@@ -280,11 +281,13 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
+
+  var args = null;
   
   if (options.srcPath){
-    var args = options.srcPath;
+    args = options.srcPath;
   } else {
-    var args = {
+    args = {
       data: options.srcData
     };
   }
@@ -327,12 +330,12 @@ exports.crop = function (options, callback) {
         ]);
         ignoreArg = false;
       }
-    })
+    });
 
     t.args = args;
     resizeCall(t, callback);
-  })
-}
+  });
+};
 
 exports.resizeArgs = function(options) {
   var opt = {
@@ -350,8 +353,9 @@ exports.resizeArgs = function(options) {
     filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
-    timeout: 0
-  }
+    timeout: 0,
+    pad: false
+  };
 
   // check options
   if (typeof options !== 'object')
@@ -407,9 +411,18 @@ exports.resizeArgs = function(options) {
     args.push('-colorspace');
     args.push(opt.colorspace);
   }
+  if (opt.pad) {
+    if (!opt.width || !opt.height) {
+      throw new Error("To pad an image, width and height must be set!");
+    }
+    args.push('-gravity');
+    args.push('Center');
+    args.push('-extent');
+    args.push(opt.width+'x'+opt.height);
+  }
   if (Array.isArray(opt.customArgs) && opt.customArgs.length)
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
 
   return {opt:opt, args:args};
-}
+};
