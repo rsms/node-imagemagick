@@ -105,6 +105,7 @@ The `options` argument have the following default values:
   strip: true,
   filter: 'Lagrange',
   sharpening: 0.2,
+  pad: false,
   customArgs: []
 }
 ```
