@@ -1,5 +1,8 @@
 var childproc = require('child_process'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    util = require('util');
+    
+var debug = true; // Show command used for convert
 
 
 function exec2(file, args /*, options, callback */) {
@@ -350,7 +353,8 @@ exports.resizeArgs = function(options) {
     filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
-    timeout: 0
+    timeout: 0,
+    background: 'none'
   }
 
   // check options
@@ -371,7 +375,12 @@ exports.resizeArgs = function(options) {
     throw new Error('both width and height can not be 0 (zero)');
 
   // build args
-  var args = [opt.srcPath];
+  var args = [];
+  if (opt.background) { // Needs to be added _before_ input file
+               args.push('-background');
+               args.push(opt.background);
+         }
+  args.push(opt.srcPath);
   if (opt.sharpening > 0) {
     args = args.concat([
       '-set', 'option:filter:blur', String(1.0-opt.sharpening)]);
@@ -410,6 +419,9 @@ exports.resizeArgs = function(options) {
   if (Array.isArray(opt.customArgs) && opt.customArgs.length)
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
+  
+  if (debug)
+    util.log('convert ' + args.join(' '));
 
   return {opt:opt, args:args};
 }
