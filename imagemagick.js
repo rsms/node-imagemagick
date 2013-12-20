@@ -354,7 +354,8 @@ exports.resizeArgs = function(options) {
     sharpening: 0.2,
     customArgs: [],
     timeout: 0,
-    background: 'none'
+    background: 'none',
+    extent: false
   }
 
   // check options
@@ -397,6 +398,12 @@ exports.resizeArgs = function(options) {
     if (opt.height === 0) args.push(String(opt.width));
     else if (opt.width === 0) args.push('x'+String(opt.height));
     else args.push(String(opt.width)+'x'+String(opt.height));
+  }
+  if (opt.extent && opt.width && opt.height) {
+    args.push('-gravity');
+    args.push('center');
+    args.push('-extent');
+    args.push(String(opt.width)+'x'+String(opt.height));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
