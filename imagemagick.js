@@ -114,19 +114,11 @@ function parseIdentify(input) {
       comps = currentLine.split(': ');
       name = comps[0].trim().toLowerCase();
       if (indent > prevIndent) indents.push(indent);
+      if (indent < prevIndent && prevIndent > 0 && indent <= 0) continue;
       while (indent < prevIndent && props.length) {
         indents.pop();
         prop = props.pop();
         prevIndent = indents[indents.length - 1];
-      }
-      if (name == 'clipping path') {
-        prop[name] = '';
-        while (currentLine = lines.shift()) {
-          if (currentLine.trim().length == 0)
-            break;
-          prop[name] += currentLine;
-        }
-        continue;
       }
       if (comps.length < 2) {
         props.push(prop);
