@@ -104,29 +104,36 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       indents = [indent],
-      comps, indent;
+      comps, indent, name, currentLine;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  lines.forEach(function(currentLine){
+  while (currentLine = lines.shift()) {
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
+      name = comps[0].trim().toLowerCase();
       if (indent > prevIndent) indents.push(indent);
       while (indent < prevIndent && props.length) {
         indents.pop();
         prop = props.pop();
         prevIndent = indents[indents.length - 1];
       }
+      if (name == 'clipping path') {
+        while (currentLine = lines.shift()) {
+          if (currentLine.trim().length == 0)
+            break;
+        }
+      }
       if (comps.length < 2) {
         props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+        prop = prop[name] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        prop[name] = comps[1].trim();
       }
       prevIndent = indent;
     }
-  });
+  };
   return prop;
 };
 
