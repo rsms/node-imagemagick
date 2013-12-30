@@ -120,10 +120,13 @@ function parseIdentify(input) {
         prevIndent = indents[indents.length - 1];
       }
       if (name == 'clipping path') {
+        prop[name] = '';
         while (currentLine = lines.shift()) {
           if (currentLine.trim().length == 0)
             break;
+          prop[name] += currentLine;
         }
+        continue;
       }
       if (comps.length < 2) {
         props.push(prop);
