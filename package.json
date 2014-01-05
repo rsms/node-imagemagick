@@ -4,7 +4,7 @@
 , "author"      : "Rasmus Andersson <http://rsms.me/>"
 , "licenses"    : ["MIT"]
 , "repository"  : { "type" : "git"
-                  , "url"  : "http://github.com/rsms/node-imagemagick.git" }
+                  , "url"  : "http://github.com/cramhead/node-imagemagick.git" }
 , "engine"      : ["node >=0.6"]
 , "main"        : "imagemagick"
 }
