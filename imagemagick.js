@@ -123,26 +123,27 @@ function parseIdentify(input) {
 
     lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
-    currentLine = lines[i];
-    indent = currentLine.search(/\S/);
-    if (indent >= 0) {
-      comps = currentLine.split(': ');
-      if (indent > prevIndent) indents.push(indent);
-      while (indent < prevIndent && props.length) {
-        indents.pop();
-        prop = props.pop();
-        prevIndent = indents[indents.length - 1];
-      }
-      if (comps.length < 2) {
-        props.push(prop);
-        if(currentLine.indexOf(':')>=0)
-            prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
-      } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
-      }
-      prevIndent = indent;
-    }
+		for (i in lines) {
+			currentLine = lines[i];
+			indent = currentLine.search(/\S/);
+			if (indent >= 0) {
+				comps = currentLine.split(': ');
+				if (indent > prevIndent) indents.push(indent);
+				while (indent < prevIndent && props.length) {
+					indents.pop();
+					prop = props.pop();
+					prevIndent = indents[indents.length - 1];
+				}
+				if (comps.length < 2) {
+					props.push(prop);
+					if(currentLine.indexOf(':')>=0)
+							prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+				} else {
+					prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+				}
+				prevIndent = indent;
+			}
+		}
     return prop;
 }
 
