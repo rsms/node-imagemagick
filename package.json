@@ -1,6 +1,6 @@
 { "name"        : "imagemagick-0.1.5"
 , "description" : "A wrapper around the imagemagick cli. Forked from /Users/cram/Projects/METEOR/meteor-imagemagick"
-, "version"     : "0.1.5"
+, "version"     : "0.1.6"
 , "author"      : "Marc d'Entremont"
 , "licenses"    : ["MIT"]
 , "repository"  : { "type" : "git"
