@@ -1,5 +1,5 @@
-{ "name"        : "imagemagick-0.1.5"
-, "description" : "A wrapper around the imagemagick cli. Forked from /Users/cram/Projects/METEOR/meteor-imagemagick"
+{ "name"        : "imagemagick-a-la-node"
+, "description" : "A wrapper around the imagemagick cli."
 , "version"     : "0.1.6"
 , "author"      : "Marc d'Entremont"
 , "licenses"    : ["MIT"]

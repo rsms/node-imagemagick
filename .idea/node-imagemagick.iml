@@ -4,6 +4,8 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Nodejs 0.10.24" level="project" />
+    <orderEntry type="library" name="Node.js Dependencies for node-imagemagick" level="project" />
   </component>
 </module>
 
