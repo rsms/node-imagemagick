@@ -7,4 +7,8 @@
                   , "url"  : "http://github.com/cramhead/node-imagemagick.git" }
 , "engine"      : ["node >=0.6"]
 , "main"        : "imagemagick"
+, "devDependencies": {
+	"mocha": "1.16.x",
+	"should": "2.1.x"
+	}
 }
