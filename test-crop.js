@@ -1,7 +1,7 @@
 var fs = require('fs'),
     im = require('./imagemagick');
 
-var path = __dirname+'/sample-images/blue-bottle-coffee.jpg';
+var path = __dirname+'/sample-images/flynn_pentax_645D.jpg';
 
 (function () {
   var opt, timeStarted = new Date;

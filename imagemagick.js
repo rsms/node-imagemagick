@@ -2,7 +2,7 @@ var childproc = require('child_process'),
     EventEmitter = require('events').EventEmitter;
 
 
-function exec2(file, args /*, options, callback */ ) {
+function exec2(file, args /*, options, callback */) {
     var options = {
         encoding: 'utf8',
         timeout: 0,
@@ -26,7 +26,7 @@ function exec2(file, args /*, options, callback */ ) {
     var killed = false;
     var timedOut = false;
 
-    var Wrapper = function(proc) {
+    var Wrapper = function (proc) {
         this.proc = proc;
         this.stderr = new Accumulator();
         proc.emitter = new EventEmitter();
@@ -35,11 +35,11 @@ function exec2(file, args /*, options, callback */ ) {
         this.err = this.stderr.out.bind(this.stderr);
         this.errCurrent = this.stderr.current.bind(this.stderr);
     };
-    Wrapper.prototype.finish = function(err) {
+    Wrapper.prototype.finish = function (err) {
         this.proc.emitter.emit('end', err, this.errCurrent());
     };
 
-    var Accumulator = function(cb) {
+    var Accumulator = function (cb) {
         this.stdout = {
             contents: ""
         };
@@ -48,8 +48,8 @@ function exec2(file, args /*, options, callback */ ) {
         };
         this.callback = cb;
 
-        var limitedWrite = function(stream) {
-            return function(chunk) {
+        var limitedWrite = function (stream) {
+            return function (chunk) {
                 stream.contents += chunk;
                 if (!killed && stream.contents.length > options.maxBuffer) {
                     child.kill(options.killSignal);
@@ -60,13 +60,13 @@ function exec2(file, args /*, options, callback */ ) {
         this.out = limitedWrite(this.stdout);
         this.err = limitedWrite(this.stderr);
     };
-    Accumulator.prototype.current = function() {
+    Accumulator.prototype.current = function () {
         return this.stdout.contents;
     };
-    Accumulator.prototype.errCurrent = function() {
+    Accumulator.prototype.errCurrent = function () {
         return this.stderr.contents;
     };
-    Accumulator.prototype.finish = function(err) {
+    Accumulator.prototype.finish = function (err) {
         this.callback(err, this.stdout.contents, this.stderr.contents);
     };
 
@@ -74,7 +74,7 @@ function exec2(file, args /*, options, callback */ ) {
 
     var timeoutId;
     if (options.timeout > 0) {
-        timeoutId = setTimeout(function() {
+        timeoutId = setTimeout(function () {
             if (!killed) {
                 child.kill(options.killSignal);
                 timedOut = true;
@@ -87,15 +87,15 @@ function exec2(file, args /*, options, callback */ ) {
     child.stdout.setEncoding(options.encoding);
     child.stderr.setEncoding(options.encoding);
 
-    child.stdout.addListener("data", function(chunk) {
+    child.stdout.addListener("data", function (chunk) {
         std.out(chunk, options.encoding);
     });
-    child.stderr.addListener("data", function(chunk) {
+    child.stderr.addListener("data", function (chunk) {
         std.err(chunk, options.encoding);
     });
 
     var version = process.versions.node.split('.');
-    child.addListener(version[0] === 0 && version[1] < 7 ? "exit" : "close", function(code, signal) {
+    child.addListener(version[0] === 0 && version[1] < 7 ? "exit" : "close", function (code, signal) {
         if (timeoutId) clearTimeout(timeoutId);
         if (code === 0 && signal === null) {
             std.finish(null);
@@ -123,31 +123,31 @@ function parseIdentify(input) {
 
     lines.shift(); //drop first line (Image: name.jpg)
 
-		for (i in lines) {
-			currentLine = lines[i];
-			indent = currentLine.search(/\S/);
-			if (indent >= 0) {
-				comps = currentLine.split(': ');
-				if (indent > prevIndent) indents.push(indent);
-				while (indent < prevIndent && props.length) {
-					indents.pop();
-					prop = props.pop();
-					prevIndent = indents[indents.length - 1];
-				}
-				if (comps.length < 2) {
-					props.push(prop);
-					if(currentLine.indexOf(':')>=0)
-							prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
-				} else {
-					prop[comps[0].trim().toLowerCase()] = comps[1].trim()
-				}
-				prevIndent = indent;
-			}
-		}
+    for (i in lines) {
+        currentLine = lines[i];
+        indent = currentLine.search(/\S/);
+        if (indent >= 0) {
+            comps = currentLine.split(': ');
+            if (indent > prevIndent) indents.push(indent);
+            while (indent < prevIndent && props.length) {
+                indents.pop();
+                prop = props.pop();
+                prevIndent = indents[indents.length - 1];
+            }
+            if (comps.length < 2) {
+                props.push(prop);
+                if (currentLine.indexOf(':') >= 0)
+                    prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+            } else {
+                prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+            }
+            prevIndent = indent;
+        }
+    }
     return prop;
 }
 
-exports.identify = function(pathOrArgs, callback) {
+exports.identify = function (pathOrArgs, callback) {
     var isCustom = Array.isArray(pathOrArgs),
         isData,
         args = isCustom ? ([]).concat(pathOrArgs) : ['-verbose', pathOrArgs];
@@ -164,20 +164,24 @@ exports.identify = function(pathOrArgs, callback) {
     }
     var proc = exec2(exports.identify.path, args, {
         timeout: 120000
-    }, function(err, stdout, stderr) {
+    }, function (err, stdout, stderr) {
         var result, geometry;
         if (!err) {
             if (isCustom) {
                 result = stdout;
             } else {
                 result = parseIdentify(stdout);
-                geometry = result['geometry'].split(/x/);
-
-                result.format = result.format.match(/\S*/)[0];
-                result.width = parseInt(geometry[0], 10);
-                result.height = parseInt(geometry[1], 10);
-                result.depth = parseInt(result.depth, 10);
-                if (result.quality !== undefined) result.quality = parseInt(result.quality, 10) / 100;
+                if (result) {
+                    if (result['geometry']) {   // check if geometry exists
+                        geometry = result['geometry'].split(/x/);
+                        result.width = parseInt(geometry[0], 10);
+                        result.height = parseInt(geometry[1], 10);
+                    }
+                    if(result.format)
+                    result.format = result.format.match(/\S*/)[0];
+                    result.depth = parseInt(result.depth, 10);
+                    if (result.quality !== undefined) result.quality = parseInt(result.quality, 10) / 100;
+                }
             }
         }
         callback(err, result);
@@ -204,7 +208,7 @@ function ExifDate(value) {
 }
 
 function exifKeyName(k) {
-    return k.replace(exifKeyName.RE, function(x) {
+    return k.replace(exifKeyName.RE, function (x) {
         if (x.length === 1) return x.toLowerCase();
         else return x.substr(0, x.length - 1).toLowerCase() + x.substr(x.length - 1);
     });
@@ -254,11 +258,11 @@ var exifFieldConverters = {
     dateTimeOriginal: ExifDate
 };
 
-exports.readMetadata = function(path, callback) {
-    return exports.identify(['-format', '%[EXIF:*]', path], function(err, stdout) {
+exports.readMetadata = function (path, callback) {
+    return exports.identify(['-format', '%[EXIF:*]', path], function (err, stdout) {
         var meta = {};
         if (!err) {
-            stdout.split(/\n/).forEach(function(line) {
+            stdout.split(/\n/).forEach(function (line) {
                 var eq_p = line.indexOf('=');
                 if (eq_p === -1) return;
                 var key = line.substr(0, eq_p).replace('/', '-'),
@@ -284,7 +288,7 @@ exports.readMetadata = function(path, callback) {
     });
 };
 
-exports.convert = function(args, timeout, callback) {
+exports.convert = function (args, timeout, callback) {
     var procopt = {
         encoding: 'binary'
     };
@@ -301,7 +305,7 @@ exports.convert = function(args, timeout, callback) {
 
 exports.convert.path = 'convert';
 
-var resizeCall = function(t, callback) {
+var resizeCall = function (t, callback) {
     var proc = exports.convert(t.args, t.opt.timeout, callback);
     if (t.opt.srcPath.match(/-$/)) {
         if ('string' === typeof t.opt.srcData) {
@@ -315,12 +319,12 @@ var resizeCall = function(t, callback) {
     return proc;
 };
 
-exports.resize = function(options, callback) {
+exports.resize = function (options, callback) {
     var t = exports.resizeArgs(options);
     return resizeCall(t, callback);
 };
 
-exports.crop = function(options, callback) {
+exports.crop = function (options, callback) {
     var args;
     if (typeof options !== 'object')
         throw new TypeError('First argument must be an object');
@@ -337,7 +341,7 @@ exports.crop = function(options, callback) {
         };
     }
 
-    exports.identify(args, function(err, meta) {
+    exports.identify(args, function (err, meta) {
         if (err) {
             return callback && callback(err);
         }
@@ -346,7 +350,7 @@ exports.crop = function(options, callback) {
             ignoreArg = false,
             printNext = false,
             args = [];
-        t.args.forEach(function(arg) {
+        t.args.forEach(function (arg) {
             if (printNext === true) {
                 //console.log("arg", arg);
                 printNext = false;
@@ -385,7 +389,7 @@ exports.crop = function(options, callback) {
     });
 };
 
-exports.resizeArgs = function(options) {
+exports.resizeArgs = function (options) {
     var opt = {
         srcPath: null,
         srcData: null,

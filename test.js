@@ -1,7 +1,7 @@
 var fs = require('fs'),
     im = require('./imagemagick');
 
-var path = __dirname + '/sample-images/blue-bottle-coffee.jpg';
+var path = __dirname + '/sample-images/flynn_pentax_645D.jpg';
 
 var targetDirectory = __dirname + '/test-results/';
 var imdata = fs.readFileSync(path, 'binary');
