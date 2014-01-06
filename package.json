@@ -1,6 +1,6 @@
 { "name"        : "imagemagick-a-la-node"
 , "description" : "A wrapper around the imagemagick cli."
-, "version"     : "0.1.6"
+, "version"     : "0.1.7"
 , "author"      : "Marc d'Entremont"
 , "licenses"    : ["MIT"]
 , "repository"  : { "type" : "git"
