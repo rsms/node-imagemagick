@@ -5,7 +5,7 @@ var childproc = require('child_process'),
 function exec2(file, args /*, options, callback */) {
   var options = { encoding: 'utf8'
                 , timeout: 0
-                , maxBuffer: 500*1024
+                , maxBuffer: 1000*1024
                 , killSignal: 'SIGKILL'
                 , output: null
                 };
@@ -95,7 +95,7 @@ function exec2(file, args /*, options, callback */) {
   });
 
   return child;
-};
+}
 
 
 function parseIdentify(input) {
@@ -108,8 +108,17 @@ function parseIdentify(input) {
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
-    currentLine = lines[i].replace(/^\s+|\s+$/g, '');
+  var i, len = lines.length;
+  for (i = 0; i < len; i++) {
+    currentLine = lines[i];
+    // PATCH: If there is no space remove the line. (Error when ouput was like bug001.txt)
+    if (currentLine[0] !== ' ') {
+      continue;
+    }
+    if (currentLine && currentLine.length > 0 && currentLine.indexOf(':') === -1) {
+      continue;
+    }
+
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
@@ -123,12 +132,55 @@ function parseIdentify(input) {
         props.push(prop);
         prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        prop[comps[0].trim().toLowerCase()] = comps[1].trim();
       }
       prevIndent = indent;
     }
   }
   return prop;
+}
+
+exports.identify2 = function(pathOrArgs, callback) {
+  var isCustom = Array.isArray(pathOrArgs),
+      isData,
+      args = isCustom ? ([]).concat(pathOrArgs) : [pathOrArgs];
+
+  if (typeof args[args.length-1] === 'object') {
+    isData = true;
+    pathOrArgs = args[args.length-1];
+    args[args.length-1] = '-';
+    if (!pathOrArgs.data)
+      throw new Error('first argument is missing the "data" member');
+  } else if (typeof pathOrArgs === 'function') {
+    args[args.length-1] = '-';
+    callback = pathOrArgs;
+  }
+  var proc = exec2(exports.identify.path, args, {timeout:240000}, function(err, stdout, stderr) {
+    var result, geometry;
+    if (!err) {
+      if (isCustom) {
+        result = stdout;
+      } else {
+        var data = stdout.split('\n')[0].split(' ');
+        geometry = data[2].split(/x/);
+
+        result = {};
+        result.width = parseInt(geometry[0], 10);
+        result.height = parseInt(geometry[1], 10);
+      }
+    }
+    callback(err, result);
+  });
+  if (isData) {
+    if ('string' === typeof pathOrArgs.data) {
+      proc.stdin.setEncoding('binary');
+      proc.stdin.write(pathOrArgs.data, 'binary');
+      proc.stdin.end();
+    } else {
+      proc.stdin.end(pathOrArgs.data);
+    }
+  }
+  return proc;
 };
 
 exports.identify = function(pathOrArgs, callback) {
@@ -146,7 +198,7 @@ exports.identify = function(pathOrArgs, callback) {
     args[args.length-1] = '-';
     callback = pathOrArgs;
   }
-  var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
+  var proc = exec2(exports.identify.path, args, {timeout:240000}, function(err, stdout, stderr) {
     var result, geometry;
     if (!err) {
       if (isCustom) {
@@ -155,14 +207,16 @@ exports.identify = function(pathOrArgs, callback) {
         result = parseIdentify(stdout);
         geometry = result['geometry'].split(/x/);
 
-        result.format = result.format.match(/\S*/)[0]
-        result.width = parseInt(geometry[0]);
-        result.height = parseInt(geometry[1]);
-        result.depth = parseInt(result.depth);
-        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+        result.format = result.format.match(/\S*/)[0];
+        result.width = parseInt(geometry[0], 10);
+        result.height = parseInt(geometry[1], 10);
+        result.depth = parseInt(result.depth, 10);
+        if (result.quality !== undefined) result.quality = parseInt(result.quality, 10) / 100;
       }
     }
     callback(err, result);
+    // callback(err + ', ' + args, result);
+    // callback(null, result);
   });
   if (isData) {
     if ('string' === typeof pathOrArgs.data) {
@@ -174,7 +228,7 @@ exports.identify = function(pathOrArgs, callback) {
     }
   }
   return proc;
-}
+};
 exports.identify.path = 'identify';
 
 function ExifDate(value) {
@@ -238,7 +292,7 @@ exports.readMetadata = function(path, callback) {
     }
     callback(err, meta);
   });
-}
+};
 
 exports.convert = function(args, timeout, callback) {
   var procopt = {encoding: 'binary'};
@@ -251,7 +305,7 @@ exports.convert = function(args, timeout, callback) {
   if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
-}
+};
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
@@ -266,12 +320,12 @@ var resizeCall = function(t, callback) {
     }
   }
   return proc;
-}
+};
 
 exports.resize = function(options, callback) {
   var t = exports.resizeArgs(options);
-  return resizeCall(t, callback)
-}
+  return resizeCall(t, callback);
+};
 
 exports.crop = function (options, callback) {
   if (typeof options !== 'object')
@@ -280,7 +334,7 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
+
   if (options.srcPath){
     var args = options.srcPath;
   } else {
@@ -297,7 +351,7 @@ exports.crop = function (options, callback) {
         args      = [];
     t.args.forEach(function (arg) {
       if (printNext === true){
-        console.log("arg", arg);
+        // console.log("arg", arg);
         printNext = false;
       }
       // ignoreArg is set when resize flag was found
@@ -305,12 +359,12 @@ exports.crop = function (options, callback) {
         args.push(arg);
       // found resize flag! ignore the next argument
       if (arg == '-resize'){
-        console.log("resize arg");
+        // console.log("resize arg");
         ignoreArg = true;
         printNext = true;
       }
       if (arg === "-crop"){
-        console.log("crop arg");
+        // console.log("crop arg");
         printNext = true;
       }
       // found the argument after the resize flag; ignore it and set crop options
@@ -332,7 +386,7 @@ exports.crop = function (options, callback) {
     t.args = args;
     resizeCall(t, callback);
   })
-}
+};
 
 exports.resizeArgs = function(options) {
   var opt = {
@@ -412,4 +466,4 @@ exports.resizeArgs = function(options) {
   args.push(opt.dstPath);
 
   return {opt:opt, args:args};
-}
+};
