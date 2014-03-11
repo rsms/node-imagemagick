@@ -175,7 +175,7 @@ exports.identify = function(pathOrArgs, callback) {
   }
   return proc;
 }
-exports.identify.path = '/usr/local/bin/identify';
+exports.identify.path = 'identify';
 
 function ExifDate(value) {
   // YYYY:MM:DD HH:MM:SS -> Date(YYYY-MM-DD HH:MM:SS +0000)
@@ -252,7 +252,7 @@ exports.convert = function(args, timeout, callback) {
     procopt.timeout = timeout;
   return exec2(exports.convert.path, args, procopt, callback);
 }
-exports.convert.path = '/usr/local/bin/convert';
+exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
   var proc = exports.convert(t.args, t.opt.timeout, callback);
