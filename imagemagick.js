@@ -128,7 +128,7 @@ function parseIdentify(input) {
       prevIndent = indent;
     }
   }
-  return prop;
+  return props[0];
 };
 
 exports.identify = function(pathOrArgs, callback) {
@@ -280,7 +280,7 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
+
   if (options.srcPath){
     var args = options.srcPath;
   } else {
