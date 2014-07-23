@@ -1,8 +1,10 @@
 # node-imagemagick
 
+**This is an old version. Please see [@yourdeveloper/node-imagemagick](https://github.com/yourdeveloper/node-imagemagick) for the currently maintained version**
+
 [Imagemagick](http://www.imagemagick.org/) module for [Node](http://nodejs.org/).
 
-> Note: This code has been unmaintained for a long time. Please consider using the [gm module](https://github.com/aheckmann/gm) instead.
+> Note: This code has been unmaintained for a long time. Please consider using the [gm](https://github.com/aheckmann/gm) module instead.
 
 You can install this module using [npm](http://github.com/isaacs/npm):
 
