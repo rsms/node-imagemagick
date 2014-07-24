@@ -1,5 +1,8 @@
 var childproc = require('child_process'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    util = require('util');
+    
+var debug = true; // Show command used for convert
 
 
 function exec2(file, args /*, options, callback */) {
@@ -350,7 +353,9 @@ exports.resizeArgs = function(options) {
     filter: 'Lagrange',
     sharpening: 0.2,
     customArgs: [],
-    timeout: 0
+    timeout: 0,
+    background: 'none',
+    extent: false
   }
 
   // check options
@@ -371,7 +376,12 @@ exports.resizeArgs = function(options) {
     throw new Error('both width and height can not be 0 (zero)');
 
   // build args
-  var args = [opt.srcPath];
+  var args = [];
+  if (opt.background) { // Needs to be added _before_ input file
+               args.push('-background');
+               args.push(opt.background);
+         }
+  args.push(opt.srcPath);
   if (opt.sharpening > 0) {
     args = args.concat([
       '-set', 'option:filter:blur', String(1.0-opt.sharpening)]);
@@ -388,6 +398,12 @@ exports.resizeArgs = function(options) {
     if (opt.height === 0) args.push(String(opt.width));
     else if (opt.width === 0) args.push('x'+String(opt.height));
     else args.push(String(opt.width)+'x'+String(opt.height));
+  }
+  if (opt.extent && opt.width && opt.height) {
+    args.push('-gravity');
+    args.push('center');
+    args.push('-extent');
+    args.push(String(opt.width)+'x'+String(opt.height));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
@@ -410,6 +426,9 @@ exports.resizeArgs = function(options) {
   if (Array.isArray(opt.customArgs) && opt.customArgs.length)
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
+  
+  if (debug)
+    util.log('convert ' + args.join(' '));
 
   return {opt:opt, args:args};
 }
