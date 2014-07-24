@@ -24,6 +24,11 @@ im.readMetadata({data:imdata}, function (err, metadata){
   console.log('readMetadata({data:imdata} ->', metadata);
 })
 
+im.mogrify(['-flip', path], function(err, stdout, stderr){
+  if (err) return sys.error(err.stack || err);
+  sys.puts('mogrify');
+})
+
 var timeStarted = new Date;
 im.resize({
   srcPath: path,

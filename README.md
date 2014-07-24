@@ -33,6 +33,10 @@ Path to the `convert` program. Defaults to `"convert"`.
 
 Path to the `identify` program. Defaults to `"identify"`.
 
+### mogrify.path
+
+Path to the `mogrify` program. Defaults to `"mogrify"`.
+
 ### identify(path, callback(err, features))
 
 Identify file at `path` and return an object `features`.
@@ -88,6 +92,21 @@ function(err, stdout){
   console.log('stdout:', stdout);
 });
 ```
+
+### mogrify(args, callback(err, stdout, stderr))
+
+Raw interface to `mogrify` passing arguments in the array `args`.
+
+Example:
+
+    im.mogrify(['-resize', '100x100', '-format', 'jpg', '-path', 'thumbnails', '*.jpg'], 
+    function(err, metadata){
+      if (err) throw err
+      sys.puts('stdout: '+sys.inspect(stdout));
+    })
+
+Warning: `mogrify` overwrites the original file unless the `-path` option is used. 
+
 
 ### resize(options, callback(err, stdout, stderr))
 
