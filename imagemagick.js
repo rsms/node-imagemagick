@@ -114,6 +114,7 @@ function parseIdentify(input) {
     if (indent >= 0) {
       comps = currentLine.split(': ');
       if (indent > prevIndent) indents.push(indent);
+      if (indent < prevIndent && prevIndent > 0 && indent <= 0) continue;
       while (indent < prevIndent && props.length) {
         indents.pop();
         prop = props.pop();
