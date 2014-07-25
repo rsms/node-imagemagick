@@ -110,6 +110,10 @@ function parseIdentify(input) {
 
   for (i in lines) {
     currentLine = lines[i];
+    // Skip xml multiline value. Found on http://beta.images.theglobeandmail.com/media/mobile/images/iphone.icon.highres.png.
+    if (/\s*</i.test(currentLine)) {
+      continue;
+    }
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
@@ -152,14 +156,18 @@ exports.identify = function(pathOrArgs, callback) {
       if (isCustom) {
         result = stdout;
       } else {
-        result = parseIdentify(stdout);
-        geometry = result['geometry'].split(/x/);
+        try {
+          result = parseIdentify(stdout);
+          geometry = result['geometry'].split(/x/);
 
-        result.format = result.format.match(/\S*/)[0]
-        result.width = parseInt(geometry[0]);
-        result.height = parseInt(geometry[1]);
-        result.depth = parseInt(result.depth);
-        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+          result.format = result.format.match(/\S*/)[0]
+          result.width = parseInt(geometry[0]);
+          result.height = parseInt(geometry[1]);
+          result.depth = parseInt(result.depth);
+          if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+        } catch (ex) {
+            return callback(ex);
+        }
       }
     }
     callback(err, result);
