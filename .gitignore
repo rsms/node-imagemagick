@@ -1,2 +1,4 @@
 **.DS_Store
 *.jpg
+.idea
+node_modules

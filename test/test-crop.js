@@ -1,13 +1,14 @@
 var fs = require('fs'),
-    im = require('./imagemagick');
+    im = require('../imagemagick');
 
-var path = __dirname+'/sample-images/blue-bottle-coffee.jpg';
+var path = __dirname+'/sample-images/flynn_pentax_645D.jpg';
+var targetDirectory = __dirname + '/test-results/';
 
 (function () {
   var opt, timeStarted = new Date;
   im.crop(opt = {
     srcPath: path,
-    dstPath: 'cropped.jpg',
+    dstPath: targetDirectory + 'cropped.jpg',
     width: 200,
     height: 90,
     quality: 1
@@ -22,7 +23,7 @@ var path = __dirname+'/sample-images/blue-bottle-coffee.jpg';
   var opt, timeStarted = new Date;
   im.crop(opt = {
     srcPath: path,
-    dstPath: 'cropped2.jpg',
+    dstPath: targetDirectory + 'cropped2.jpg',
     width: 200,
     height: 90,
     gravity: "North",
