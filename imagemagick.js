@@ -104,16 +104,20 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       indents = [indent],
-      currentLine, comps, indent, i;
+      comps, indent, name, currentLine;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
-    currentLine = lines[i];
+  while (lines.length) {
+    if (!(currentLine = lines.shift()))
+      continue;
+
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
       comps = currentLine.split(': ');
+      name = comps[0].trim().toLowerCase();
       if (indent > prevIndent) indents.push(indent);
+      if (indent < prevIndent && prevIndent > 0 && indent <= 0) continue;
       while (indent < prevIndent && props.length) {
         indents.pop();
         prop = props.pop();
@@ -121,13 +125,13 @@ function parseIdentify(input) {
       }
       if (comps.length < 2) {
         props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+        prop = prop[name] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        prop[name] = comps[1].trim();
       }
       prevIndent = indent;
     }
-  }
+  };
   return prop;
 };
 
@@ -346,6 +350,7 @@ exports.resizeArgs = function(options) {
     colorspace: null,
     width: 0,
     height: 0,
+    force: false,
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
@@ -387,7 +392,7 @@ exports.resizeArgs = function(options) {
     args.push('-resize');
     if (opt.height === 0) args.push(String(opt.width));
     else if (opt.width === 0) args.push('x'+String(opt.height));
-    else args.push(String(opt.width)+'x'+String(opt.height));
+    else args.push(String(opt.width)+'x'+String(opt.height)+(opt.force?'!':''));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
