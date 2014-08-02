@@ -91,7 +91,9 @@ function(err, stdout){
 
 ### resize(options, callback(err, stdout, stderr))
 
-Convenience function for resizing an image, modelled on top of `convert`.
+Convenience function for resizing an image, modelled on top of `convert`. 
+
+Because IM preserves the aspect ratio of an image, the area provided in the 'options' argument is not the final size of the image, but the maximum size for the image.
 
 The `options` argument have the following default values:
 
