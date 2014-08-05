@@ -120,8 +120,12 @@ function parseIdentify(input) {
         prevIndent = indents[indents.length - 1];
       }
       if (comps.length < 2) {
-        props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+        // Don't allow bad lines of output, as seen in the rdf property, to
+        // crash the whole show. Make sure there is a : present
+        if (currentLine.indexOf(':') !== -1) {
+          props.push(prop);
+          prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+        }
       } else {
         prop[comps[0].trim().toLowerCase()] = comps[1].trim()
       }
