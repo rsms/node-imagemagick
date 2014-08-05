@@ -95,7 +95,7 @@ function exec2(file, args /*, options, callback */) {
   });
 
   return child;
-};
+}
 
 
 function parseIdentify(input) {
@@ -108,7 +108,7 @@ function parseIdentify(input) {
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
+  for (i = 0; i < lines.length; i++) {
     currentLine = lines[i];
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
@@ -123,13 +123,13 @@ function parseIdentify(input) {
         props.push(prop);
         prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        prop[comps[0].trim().toLowerCase()] = comps[1].trim();
       }
       prevIndent = indent;
     }
   }
   return prop;
-};
+}
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
@@ -280,7 +280,7 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
+
   if (options.srcPath){
     var args = options.srcPath;
   } else {
