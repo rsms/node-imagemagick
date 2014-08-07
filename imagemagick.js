@@ -153,13 +153,21 @@ exports.identify = function(pathOrArgs, callback) {
         result = stdout;
       } else {
         result = parseIdentify(stdout);
-        geometry = result['geometry'].split(/x/);
+        try {
 
-        result.format = result.format.match(/\S*/)[0]
-        result.width = parseInt(geometry[0]);
-        result.height = parseInt(geometry[1]);
-        result.depth = parseInt(result.depth);
-        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+            geometry = result['geometry'].split(/x/);
+
+            result.format = result.format.match(/\S*/)[0]
+            result.width = parseInt(geometry[0]);
+            result.height = parseInt(geometry[1]);
+            result.depth = parseInt(result.depth);
+            if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+          } catch (err) {
+            console.log('##########***************START IMAGEMAGICK ERROR***************##########');
+            console.log(err);
+            console.log(result);
+            console.log('##########***************END IMAGEMAGICK ERROR***************##########');
+          }
       }
     }
     callback(err, result);
