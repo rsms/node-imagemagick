@@ -236,6 +236,7 @@ exports.readMetadata = function(path, callback) {
         else meta[typekey][key] = value;
       })
     }
+    meta.path = path;
     callback(err, meta);
   });
 }
