@@ -319,12 +319,16 @@ exports.crop = function (options, callback) {
             dDst      = t.opt.width / t.opt.height,
             resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height,
             dGravity  = options.gravity ? options.gravity : "Center";
-        args = args.concat([
-          '-resize', resizeTo,
+        var appendArgs = [
           '-gravity', dGravity,
-          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
+          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+' + t.opt.x + '+' + t.opt.y,
           '+repage'
-        ]);
+        ]
+        if (!t.opt.ignoreResize) {
+          // crop may be not need resize the image.
+          appendArgs = ['-resize', resizeTo].concat(appendArgs)
+        }
+        args = args.concat(appendArgs);
         ignoreArg = false;
       }
     })
@@ -346,6 +350,9 @@ exports.resizeArgs = function(options) {
     colorspace: null,
     width: 0,
     height: 0,
+    ignoreResize: false,
+    x: 0,
+    y: 0,
     strip: true,
     filter: 'Lagrange',
     sharpening: 0.2,
