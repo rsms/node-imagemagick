@@ -1,6 +1,6 @@
 # node-imagemagick
 
-**This is an abandoned version. Please see [@yourdeveloper/node-imagemagick](https://github.com/yourdeveloper/node-imagemagick) for the currently maintained version**
+**This is an abandoned version. Please see [github.com/aheckmann/gm](https://github.com/aheckmann/gm) for the currently maintained version**
 
 [Imagemagick](http://www.imagemagick.org/) module for [Node](http://nodejs.org/).
 
