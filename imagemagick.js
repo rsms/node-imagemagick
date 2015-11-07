@@ -9,7 +9,9 @@ function exec2(program, args, opts, callback) {
       code,
       i = 0,
       decoder = new StringDecoder(),
-      v = process.version.split('.')[1];
+      v = process.version.split('.'),
+      version_major = v[0],
+      version_minor = v[1];
 
   if (typeof opts === 'function') {
     callback = opts;
@@ -26,7 +28,7 @@ function exec2(program, args, opts, callback) {
 
   child.on('exit', function(c) {
     code = c;
-    if (++i >= 2 || v < 8) callback(err, out, code);
+    if (++i >= 2 || (version_major === 0 && version_minor < 8)) callback(err, out, code);
   });
 
   child.on('close', function() {
