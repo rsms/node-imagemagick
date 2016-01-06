@@ -131,6 +131,10 @@ function parseIdentify(input) {
   return prop;
 };
 
+exports.exec = function(args, procopt, callback) {
+  return exec2(exports.convert.path, args, procopt, callback);
+}
+
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
       isData,
