@@ -21,7 +21,14 @@ function exec2(file, args /*, options, callback */) {
     }
   }
 
-  var child = childproc.spawn(file, args);
+  var env = Object.create(process.env);
+  if (env.MAGICK_CONFIGURE_PATH) {
+    console.warn('warn: MAGICK_CONFIGURE_PATH is already defined!');
+  }
+
+  env.MAGICK_CONFIGURE_PATH = __dirname + '/policy';
+
+  var child = childproc.spawn(file, args,  { env: env });
   var killed = false;
   var timedOut = false;
 
