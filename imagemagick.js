@@ -108,7 +108,7 @@ function parseIdentify(input) {
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
+  for (i in lines) if(lines.hasOwnProperty(i)) {
     currentLine = lines[i];
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
@@ -356,7 +356,7 @@ exports.resizeArgs = function(options) {
   // check options
   if (typeof options !== 'object')
     throw new Error('first argument must be an object');
-  for (var k in opt) if (k in options) opt[k] = options[k];
+  for (var k in opt) if (k in options && opt.hasOwnProperty(k)) opt[k] = options[k];
   if (!opt.srcPath && !opt.srcData)
     throw new Error('both srcPath and srcData are empty');
 
