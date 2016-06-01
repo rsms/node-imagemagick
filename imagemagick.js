@@ -240,17 +240,20 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, callback) {
+exports.convert = function(args, options, callback) {
   var procopt = {encoding: 'binary'};
-  if (typeof timeout === 'function') {
-    callback = timeout;
-    timeout = 0;
-  } else if (typeof timeout !== 'number') {
-    timeout = 0;
+  var timeout = 0;
+  var inplace = false;
+  if (typeof options === 'function') {
+    callback = options;
+    options = nul;
+  } else if (options != null && typeof options === 'object') {
+    timeout = options.timeout || 0;
+    inplace = options.inplace === true ? true : false;
   }
   if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
     procopt.timeout = timeout;
-  return exec2(exports.convert.path, args, procopt, callback);
+  return exec2(inplace ? 'mogrify' : exports.convert.path, args, procopt, callback);
 }
 exports.convert.path = 'convert';
 
