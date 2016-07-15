@@ -103,8 +103,9 @@ function parseIdentify(input) {
       prop = {},
       props = [prop],
       prevIndent = 0,
+      ident = 0,
       indents = [indent],
-      currentLine, comps, indent, i, svg, svgText;
+      currentLine, comps, svg, svgText;
   lines.shift(); //drop first line (Image: name.jpg)
   for (i in lines) {
     currentLine = lines[i];
@@ -118,21 +119,23 @@ function parseIdentify(input) {
     if (svg) {
       svgText += currentLine;
     } else {
-      if (indent >= 0) {
+      if (currentLine.length > 0) {
         comps = currentLine.split(': ');
-        if (indent > prevIndent) indents.push(indent);
-        while (indent < prevIndent && props.length) {
+        indent = currentLine.search(/\S/);
+        while (indent <= prevIndent) {
           indents.pop();
           prop = props.pop();
           prevIndent = indents[indents.length - 1];
         }
+        
         if (comps.length < 2) {
+          indents.push(indent);
           props.push(prop);
           prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+          prevIndent = indent;
         } else {
           prop[comps[0].trim().toLowerCase()] = comps[1].trim()
         }
-        prevIndent = indent;
       }
     }
     if (currentLine.match(/<\/svg>/)) {
@@ -140,7 +143,7 @@ function parseIdentify(input) {
       prop['svg'] = svgText;
     }
   }
-  return prop;
+  return props[0];
 }
 
 exports.identify = function(pathOrArgs, callback) {
