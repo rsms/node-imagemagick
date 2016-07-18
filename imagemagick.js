@@ -103,7 +103,7 @@ function parseIdentify(input) {
       prop = {},
       props = [prop],
       prevIndent = 0,
-      ident = 0,
+      indent = 0,
       indents = [indent],
       currentLine, comps, svg, svgText;
   lines.shift(); //drop first line (Image: name.jpg)
