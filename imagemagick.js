@@ -383,6 +383,9 @@ exports.resizeArgs = function(options) {
   if (opt.strip) {
     args.push('-strip');
   }
+  if (opt.format === 'gif') {
+    args.push('-coalesce');
+  }
   if (opt.width || opt.height) {
     args.push('-resize');
     if (opt.height === 0) args.push(String(opt.width));
