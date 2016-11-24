@@ -280,7 +280,7 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
+
   if (options.srcPath){
     var args = options.srcPath;
   } else {
@@ -297,7 +297,6 @@ exports.crop = function (options, callback) {
         args      = [];
     t.args.forEach(function (arg) {
       if (printNext === true){
-        console.log("arg", arg);
         printNext = false;
       }
       // ignoreArg is set when resize flag was found
@@ -305,12 +304,10 @@ exports.crop = function (options, callback) {
         args.push(arg);
       // found resize flag! ignore the next argument
       if (arg == '-resize'){
-        console.log("resize arg");
         ignoreArg = true;
         printNext = true;
       }
       if (arg === "-crop"){
-        console.log("crop arg");
         printNext = true;
       }
       // found the argument after the resize flag; ignore it and set crop options
