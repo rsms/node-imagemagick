@@ -108,7 +108,7 @@ function parseIdentify(input) {
 
   lines.shift(); //drop first line (Image: name.jpg)
 
-  for (i in lines) {
+  for (var i in lines) {
     currentLine = lines[i];
     indent = currentLine.search(/\S/);
     if (indent >= 0) {
