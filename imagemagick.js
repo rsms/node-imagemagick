@@ -1,7 +1,6 @@
 var childproc = require('child_process'),
     EventEmitter = require('events').EventEmitter;
 
-
 function exec2(file, args /*, options, callback */) {
   var options = { encoding: 'utf8'
                 , timeout: 0
@@ -9,6 +8,11 @@ function exec2(file, args /*, options, callback */) {
                 , killSignal: 'SIGKILL'
                 , output: null
                 };
+
+  if (exports.useGM) {
+      args.unshift(file);
+      file = 'gm';
+  }
 
   var callback = arguments[arguments.length-1];
   if ('function' != typeof callback) callback = null;
@@ -175,6 +179,13 @@ exports.identify = function(pathOrArgs, callback) {
   }
   return proc;
 }
+
+exports.usingGM = true;
+exports.useGM = function(usingGM) {
+    usingGM = usingGM !== undefined ? usingGM : true;
+    exports.usingGM = usingGM;
+}
+
 exports.identify.path = 'identify';
 
 function ExifDate(value) {
@@ -253,6 +264,20 @@ exports.convert = function(args, timeout, callback) {
   return exec2(exports.convert.path, args, procopt, callback);
 }
 exports.convert.path = 'convert';
+
+exports.montage = function(args, timeout, callback) {
+  var procopt = {encoding: 'binary'};
+  if (typeof timeout === 'function') {
+    callback = timeout;
+    timeout = 0;
+  } else if (typeof timeout !== 'number') {
+    timeout = 0;
+  }
+  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
+    procopt.timeout = timeout;
+  return exec2(exports.montage.path, args, procopt, callback);
+}
+exports.montage.path = 'montage';
 
 var resizeCall = function(t, callback) {
   var proc = exports.convert(t.args, t.opt.timeout, callback);
