@@ -240,17 +240,23 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, callback) {
-  var procopt = {encoding: 'binary'};
-  if (typeof timeout === 'function') {
-    callback = timeout;
-    timeout = 0;
-  } else if (typeof timeout !== 'number') {
-    timeout = 0;
+exports.convert = function(args, procopts, callback) {
+  if (typeof procopts === 'function') {
+    callback = procopts;
+    procopts = {};
   }
-  if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout))
-    procopt.timeout = timeout;
-  return exec2(exports.convert.path, args, procopt, callback);
+  if (typeof procopts !== 'object') {
+    var timeout = procopts;
+    if (timeout && (timeout = parseInt(timeout)) > 0 && !isNaN(timeout)) {
+      timeout = timeout;
+    } else {
+      timeout = 0;
+    }
+    procopts = {timeout: timeout};
+  }
+  procopts.encoding = 'binary';
+  
+  return exec2(exports.convert.path, args, procopts, callback);
 }
 exports.convert.path = 'convert';
 
