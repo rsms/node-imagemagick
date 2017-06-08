@@ -104,15 +104,15 @@ function parseIdentify(input) {
       props = [prop],
       prevIndent = 0,
       indents = [indent],
-      currentLine, comps, indent, i;
+      currLine, comps, indent, i;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
   for (i in lines) {
-    currentLine = lines[i];
-    indent = currentLine.search(/\S/);
+    currLine = lines[i];
+    indent = currLine.search(/\S/);
     if (indent >= 0) {
-      comps = currentLine.split(': ');
+      comps = currLine.split(': ');
       if (indent > prevIndent) indents.push(indent);
       while (indent < prevIndent && props.length) {
         indents.pop();
@@ -121,7 +121,7 @@ function parseIdentify(input) {
       }
       if (comps.length < 2) {
         props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+        prop = prop[currLine.split(':')[0].trim().toLowerCase()] = {};
       } else {
         prop[comps[0].trim().toLowerCase()] = comps[1].trim()
       }
