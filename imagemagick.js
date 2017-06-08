@@ -95,7 +95,7 @@ function exec2(file, args /*, options, callback */) {
   });
 
   return child;
-};
+}
 
 
 function parseIdentify(input) {
@@ -103,33 +103,48 @@ function parseIdentify(input) {
       prop = {},
       props = [prop],
       prevIndent = 0,
+      indent = 0,
       indents = [indent],
-      currentLine, comps, indent, i;
-
+      currentLine, comps, svg, svgText;
   lines.shift(); //drop first line (Image: name.jpg)
-
   for (i in lines) {
     currentLine = lines[i];
     indent = currentLine.search(/\S/);
-    if (indent >= 0) {
-      comps = currentLine.split(': ');
-      if (indent > prevIndent) indents.push(indent);
-      while (indent < prevIndent && props.length) {
-        indents.pop();
-        prop = props.pop();
-        prevIndent = indents[indents.length - 1];
+
+    if (currentLine.match(/<\?xml/)) {
+      svg = true;
+      svgText = currentLine;
+    }
+
+    if (svg) {
+      svgText += currentLine;
+    } else {
+      if (currentLine.length > 0) {
+        comps = currentLine.split(': ');
+        indent = currentLine.search(/\S/);
+        while (indent <= prevIndent) {
+          indents.pop();
+          prop = props.pop();
+          prevIndent = indents[indents.length - 1];
+        }
+        
+        if (comps.length < 2) {
+          indents.push(indent);
+          props.push(prop);
+          prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
+          prevIndent = indent;
+        } else {
+          prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+        }
       }
-      if (comps.length < 2) {
-        props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
-      } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
-      }
-      prevIndent = indent;
+    }
+    if (currentLine.match(/<\/svg>/)) {
+      svg = false;
+      prop['svg'] = svgText;
     }
   }
-  return prop;
-};
+  return props[0];
+}
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
@@ -155,7 +170,7 @@ exports.identify = function(pathOrArgs, callback) {
         result = parseIdentify(stdout);
         geometry = result['geometry'].split(/x/);
 
-        result.format = result.format.match(/\S*/)[0]
+        result.format = result.format.match(/\S*/)[0];
         result.width = parseInt(geometry[0]);
         result.height = parseInt(geometry[1]);
         result.depth = parseInt(result.depth);
@@ -174,7 +189,8 @@ exports.identify = function(pathOrArgs, callback) {
     }
   }
   return proc;
-}
+};
+
 exports.identify.path = 'identify';
 
 function ExifDate(value) {
@@ -280,7 +296,7 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
+
   if (options.srcPath){
     var args = options.srcPath;
   } else {
