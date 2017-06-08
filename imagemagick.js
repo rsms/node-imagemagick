@@ -1,16 +1,17 @@
 var childproc = require('child_process'),
-    EventEmitter = require('events').EventEmitter;
+  EventEmitter = require('events').EventEmitter;
 
 
-function exec2(file, args /*, options, callback */) {
-  var options = { encoding: 'utf8'
-                , timeout: 0
-                , maxBuffer: 500*1024
-                , killSignal: 'SIGKILL'
-                , output: null
-                };
+function exec2(file, args /*, options, callback */ ) {
+  var options = {
+    encoding: 'utf8',
+    timeout: 0,
+    maxBuffer: 500 * 1024,
+    killSignal: 'SIGKILL',
+    output: null
+  };
 
-  var callback = arguments[arguments.length-1];
+  var callback = arguments[arguments.length - 1];
   if ('function' != typeof callback) callback = null;
 
   if (typeof arguments[2] == 'object') {
@@ -25,7 +26,7 @@ function exec2(file, args /*, options, callback */) {
   var killed = false;
   var timedOut = false;
 
-  var Wrapper = function(proc) {
+  var Wrapper = function (proc) {
     this.proc = proc;
     this.stderr = new Accumulator();
     proc.emitter = new EventEmitter();
@@ -34,17 +35,21 @@ function exec2(file, args /*, options, callback */) {
     this.err = this.stderr.out.bind(this.stderr);
     this.errCurrent = this.stderr.current.bind(this.stderr);
   };
-  Wrapper.prototype.finish = function(err) {
+  Wrapper.prototype.finish = function (err) {
     this.proc.emitter.emit('end', err, this.errCurrent());
   };
 
-  var Accumulator = function(cb) {
-    this.stdout = {contents: ""};
-    this.stderr = {contents: ""};
+  var Accumulator = function (cb) {
+    this.stdout = {
+      contents: ""
+    };
+    this.stderr = {
+      contents: ""
+    };
     this.callback = cb;
 
-    var limitedWrite = function(stream) {
-      return function(chunk) {
+    var limitedWrite = function (stream) {
+      return function (chunk) {
         stream.contents += chunk;
         if (!killed && stream.contents.length > options.maxBuffer) {
           child.kill(options.killSignal);
@@ -55,9 +60,15 @@ function exec2(file, args /*, options, callback */) {
     this.out = limitedWrite(this.stdout);
     this.err = limitedWrite(this.stderr);
   };
-  Accumulator.prototype.current = function() { return this.stdout.contents; };
-  Accumulator.prototype.errCurrent = function() { return this.stderr.contents; };
-  Accumulator.prototype.finish = function(err) { this.callback(err, this.stdout.contents, this.stderr.contents); };
+  Accumulator.prototype.current = function () {
+    return this.stdout.contents;
+  };
+  Accumulator.prototype.errCurrent = function () {
+    return this.stderr.contents;
+  };
+  Accumulator.prototype.finish = function (err) {
+    this.callback(err, this.stdout.contents, this.stderr.contents);
+  };
 
   var std = callback ? new Accumulator(callback) : new Wrapper(child);
 
@@ -76,8 +87,12 @@ function exec2(file, args /*, options, callback */) {
   child.stdout.setEncoding(options.encoding);
   child.stderr.setEncoding(options.encoding);
 
-  child.stdout.addListener("data", function (chunk) { std.out(chunk, options.encoding); });
-  child.stderr.addListener("data", function (chunk) { std.err(chunk, options.encoding); });
+  child.stdout.addListener("data", function (chunk) {
+    std.out(chunk, options.encoding);
+  });
+  child.stderr.addListener("data", function (chunk) {
+    std.err(chunk, options.encoding);
+  });
 
   var version = process.versions.node.split('.');
   child.addListener(version[0] == 0 && version[1] < 7 ? "exit" : "close", function (code, signal) {
@@ -85,7 +100,7 @@ function exec2(file, args /*, options, callback */) {
     if (code === 0 && signal === null) {
       std.finish(null);
     } else {
-      var e = new Error("Command "+(timedOut ? "timed out" : "failed")+": " + std.errCurrent());
+      var e = new Error("Command " + (timedOut ? "timed out" : "failed") + ": " + std.errCurrent());
       e.timedOut = timedOut;
       e.killed = killed;
       e.code = code;
@@ -100,21 +115,21 @@ function exec2(file, args /*, options, callback */) {
 
 function parseIdentify(input) {
   var lines = input.split("\n"),
-      prop = {},
-      props = [prop],
-      prevIndent = 0,
-      indents = [indent],
-      currentLine, comps, indent, i;
+    prop = {},
+    props = [prop],
+    prevIndent = 0,
+    indents = [indent],
+    currentLine, comps, indent;
 
   lines.shift(); //drop first line (Image: name.jpg)
 
   for (i in lines) {
     currentLine = lines[i];
-    indent = currentLine.search(/\S/);
-    if (indent >= 0) {
+    if (currentLine.length > 0) {
+      indent = currentLine.search(/\S/);
       comps = currentLine.split(': ');
       if (indent > prevIndent) indents.push(indent);
-      while (indent < prevIndent && props.length) {
+      while (indent < prevIndent) {
         indents.pop();
         prop = props.pop();
         prevIndent = indents[indents.length - 1];
@@ -128,25 +143,27 @@ function parseIdentify(input) {
       prevIndent = indent;
     }
   }
-  return prop;
+  return props[0];
 };
 
-exports.identify = function(pathOrArgs, callback) {
+exports.identify = function (pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
-      isData,
-      args = isCustom ? ([]).concat(pathOrArgs) : ['-verbose', pathOrArgs];
+    isData,
+    args = isCustom ? ([]).concat(pathOrArgs) : ['-verbose', pathOrArgs];
 
-  if (typeof args[args.length-1] === 'object') {
+  if (typeof args[args.length - 1] === 'object') {
     isData = true;
-    pathOrArgs = args[args.length-1];
-    args[args.length-1] = '-';
+    pathOrArgs = args[args.length - 1];
+    args[args.length - 1] = '-';
     if (!pathOrArgs.data)
       throw new Error('first argument is missing the "data" member');
   } else if (typeof pathOrArgs === 'function') {
-    args[args.length-1] = '-';
+    args[args.length - 1] = '-';
     callback = pathOrArgs;
   }
-  var proc = exec2(exports.identify.path, args, {timeout:120000}, function(err, stdout, stderr) {
+  var proc = exec2(exports.identify.path, args, {
+    timeout: 120000
+  }, function (err, stdout, stderr) {
     var result, geometry;
     if (!err) {
       if (isCustom) {
@@ -180,59 +197,87 @@ exports.identify.path = 'identify';
 function ExifDate(value) {
   // YYYY:MM:DD HH:MM:SS -> Date(YYYY-MM-DD HH:MM:SS +0000)
   value = value.split(/ /);
-  return new Date(value[0].replace(/:/g, '-')+' '+
-    value[1]+' +0000');
+  return new Date(value[0].replace(/:/g, '-') + ' ' +
+    value[1] + ' +0000');
 }
 
 function exifKeyName(k) {
-  return k.replace(exifKeyName.RE, function(x){
+  return k.replace(exifKeyName.RE, function (x) {
     if (x.length === 1) return x.toLowerCase();
-    else return x.substr(0,x.length-1).toLowerCase()+x.substr(x.length-1);
+    else return x.substr(0, x.length - 1).toLowerCase() + x.substr(x.length - 1);
   });
 }
 exifKeyName.RE = /^[A-Z]+/;
 
 var exifFieldConverters = {
   // Numbers
-  bitsPerSample:Number, compression:Number, exifImageLength:Number,
-  exifImageWidth:Number, exifOffset:Number, exposureProgram:Number,
-  flash:Number, imageLength:Number, imageWidth:Number, isoSpeedRatings:Number,
-  jpegInterchangeFormat:Number, jpegInterchangeFormatLength:Number,
-  lightSource:Number, meteringMode:Number, orientation:Number,
-  photometricInterpretation:Number, planarConfiguration:Number,
-  resolutionUnit:Number, rowsPerStrip:Number, samplesPerPixel:Number,
-  sensingMethod:Number, stripByteCounts:Number, subSecTime:Number,
-  subSecTimeDigitized:Number, subSecTimeOriginal:Number, customRendered:Number,
-  exposureMode:Number, focalLengthIn35mmFilm:Number, gainControl:Number,
-  saturation:Number, sharpness:Number, subjectDistanceRange:Number,
-  subSecTime:Number, subSecTimeDigitized:Number, subSecTimeOriginal:Number,
-  whiteBalance:Number, sceneCaptureType:Number,
+  bitsPerSample: Number,
+  compression: Number,
+  exifImageLength: Number,
+  exifImageWidth: Number,
+  exifOffset: Number,
+  exposureProgram: Number,
+  flash: Number,
+  imageLength: Number,
+  imageWidth: Number,
+  isoSpeedRatings: Number,
+  jpegInterchangeFormat: Number,
+  jpegInterchangeFormatLength: Number,
+  lightSource: Number,
+  meteringMode: Number,
+  orientation: Number,
+  photometricInterpretation: Number,
+  planarConfiguration: Number,
+  resolutionUnit: Number,
+  rowsPerStrip: Number,
+  samplesPerPixel: Number,
+  sensingMethod: Number,
+  stripByteCounts: Number,
+  subSecTime: Number,
+  subSecTimeDigitized: Number,
+  subSecTimeOriginal: Number,
+  customRendered: Number,
+  exposureMode: Number,
+  focalLengthIn35mmFilm: Number,
+  gainControl: Number,
+  saturation: Number,
+  sharpness: Number,
+  subjectDistanceRange: Number,
+  subSecTime: Number,
+  subSecTimeDigitized: Number,
+  subSecTimeOriginal: Number,
+  whiteBalance: Number,
+  sceneCaptureType: Number,
 
   // Dates
-  dateTime:ExifDate, dateTimeDigitized:ExifDate, dateTimeOriginal:ExifDate
+  dateTime: ExifDate,
+  dateTimeDigitized: ExifDate,
+  dateTimeOriginal: ExifDate
 };
 
-exports.readMetadata = function(path, callback) {
-  return exports.identify(['-format', '%[EXIF:*]', path], function(err, stdout) {
+exports.readMetadata = function (path, callback) {
+  return exports.identify(['-format', '%[EXIF:*]', path], function (err, stdout) {
     var meta = {};
     if (!err) {
-      stdout.split(/\n/).forEach(function(line){
+      stdout.split(/\n/).forEach(function (line) {
         var eq_p = line.indexOf('=');
         if (eq_p === -1) return;
-        var key = line.substr(0, eq_p).replace('/','-'),
-            value = line.substr(eq_p+1).trim(),
-            typekey = 'default';
+        var key = line.substr(0, eq_p).replace('/', '-'),
+          value = line.substr(eq_p + 1).trim(),
+          typekey = 'default';
         var p = key.indexOf(':');
         if (p !== -1) {
           typekey = key.substr(0, p);
-          key = key.substr(p+1);
+          key = key.substr(p + 1);
           if (typekey === 'exif') {
             key = exifKeyName(key);
             var converter = exifFieldConverters[key];
             if (converter) value = converter(value);
           }
         }
-        if (!(typekey in meta)) meta[typekey] = {key:value};
+        if (!(typekey in meta)) meta[typekey] = {
+          key: value
+        };
         else meta[typekey][key] = value;
       })
     }
@@ -240,8 +285,10 @@ exports.readMetadata = function(path, callback) {
   });
 }
 
-exports.convert = function(args, timeout, callback) {
-  var procopt = {encoding: 'binary'};
+exports.convert = function (args, timeout, callback) {
+  var procopt = {
+    encoding: 'binary'
+  };
   if (typeof timeout === 'function') {
     callback = timeout;
     timeout = 0;
@@ -254,7 +301,7 @@ exports.convert = function(args, timeout, callback) {
 }
 exports.convert.path = 'convert';
 
-var resizeCall = function(t, callback) {
+var resizeCall = function (t, callback) {
   var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
     if ('string' === typeof t.opt.srcData) {
@@ -268,7 +315,7 @@ var resizeCall = function(t, callback) {
   return proc;
 }
 
-exports.resize = function(options, callback) {
+exports.resize = function (options, callback) {
   var t = exports.resizeArgs(options);
   return resizeCall(t, callback)
 }
@@ -280,8 +327,8 @@ exports.crop = function (options, callback) {
     throw new TypeError("No srcPath or data defined");
   if (!options.height && !options.width)
     throw new TypeError("No width or height defined");
-  
-  if (options.srcPath){
+
+  if (options.srcPath) {
     var args = options.srcPath;
   } else {
     var args = {
@@ -289,14 +336,14 @@ exports.crop = function (options, callback) {
     };
   }
 
-  exports.identify(args, function(err, meta) {
+  exports.identify(args, function (err, meta) {
     if (err) return callback && callback(err);
-    var t         = exports.resizeArgs(options),
-        ignoreArg = false,
-        printNext  = false,
-        args      = [];
+    var t = exports.resizeArgs(options),
+      ignoreArg = false,
+      printNext = false,
+      args = [];
     t.args.forEach(function (arg) {
-      if (printNext === true){
+      if (printNext === true) {
         console.log("arg", arg);
         printNext = false;
       }
@@ -304,25 +351,25 @@ exports.crop = function (options, callback) {
       if (!ignoreArg && (arg != '-resize'))
         args.push(arg);
       // found resize flag! ignore the next argument
-      if (arg == '-resize'){
+      if (arg == '-resize') {
         console.log("resize arg");
         ignoreArg = true;
         printNext = true;
       }
-      if (arg === "-crop"){
+      if (arg === "-crop") {
         console.log("crop arg");
         printNext = true;
       }
       // found the argument after the resize flag; ignore it and set crop options
       if ((arg != "-resize") && ignoreArg) {
-        var dSrc      = meta.width / meta.height,
-            dDst      = t.opt.width / t.opt.height,
-            resizeTo  = (dSrc < dDst) ? ''+t.opt.width+'x' : 'x'+t.opt.height,
-            dGravity  = options.gravity ? options.gravity : "Center";
+        var dSrc = meta.width / meta.height,
+          dDst = t.opt.width / t.opt.height,
+          resizeTo = (dSrc < dDst) ? '' + t.opt.width + 'x' : 'x' + t.opt.height,
+          dGravity = options.gravity ? options.gravity : "Center";
         args = args.concat([
           '-resize', resizeTo,
           '-gravity', dGravity,
-          '-crop', ''+t.opt.width + 'x' + t.opt.height + '+0+0',
+          '-crop', '' + t.opt.width + 'x' + t.opt.height + '+0+0',
           '+repage'
         ]);
         ignoreArg = false;
@@ -334,7 +381,7 @@ exports.crop = function (options, callback) {
   })
 }
 
-exports.resizeArgs = function(options) {
+exports.resizeArgs = function (options) {
   var opt = {
     srcPath: null,
     srcData: null,
@@ -356,17 +403,18 @@ exports.resizeArgs = function(options) {
   // check options
   if (typeof options !== 'object')
     throw new Error('first argument must be an object');
-  for (var k in opt) if (k in options) opt[k] = options[k];
+  for (var k in opt)
+    if (k in options) opt[k] = options[k];
   if (!opt.srcPath && !opt.srcData)
     throw new Error('both srcPath and srcData are empty');
 
   // normalize options
   if (!opt.format) opt.format = 'jpg';
   if (!opt.srcPath) {
-    opt.srcPath = (opt.srcFormat ? opt.srcFormat +':-' : '-'); // stdin
+    opt.srcPath = (opt.srcFormat ? opt.srcFormat + ':-' : '-'); // stdin
   }
   if (!opt.dstPath)
-    opt.dstPath = (opt.format ? opt.format+':-' : '-'); // stdout
+    opt.dstPath = (opt.format ? opt.format + ':-' : '-'); // stdout
   if (opt.width === 0 && opt.height === 0)
     throw new Error('both width and height can not be 0 (zero)');
 
@@ -374,7 +422,8 @@ exports.resizeArgs = function(options) {
   var args = [opt.srcPath];
   if (opt.sharpening > 0) {
     args = args.concat([
-      '-set', 'option:filter:blur', String(1.0-opt.sharpening)]);
+      '-set', 'option:filter:blur', String(1.0 - opt.sharpening)
+    ]);
   }
   if (opt.filter) {
     args.push('-filter');
@@ -386,8 +435,8 @@ exports.resizeArgs = function(options) {
   if (opt.width || opt.height) {
     args.push('-resize');
     if (opt.height === 0) args.push(String(opt.width));
-    else if (opt.width === 0) args.push('x'+String(opt.height));
-    else args.push(String(opt.width)+'x'+String(opt.height));
+    else if (opt.width === 0) args.push('x' + String(opt.height));
+    else args.push(String(opt.width) + 'x' + String(opt.height));
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
@@ -398,8 +447,7 @@ exports.resizeArgs = function(options) {
   if (isJPEG || opt.format === 'png') {
     args.push('-quality');
     args.push(Math.round(opt.quality * 100.0).toString());
-  }
-  else if (opt.format === 'miff' || opt.format === 'mif') {
+  } else if (opt.format === 'miff' || opt.format === 'mif') {
     args.push('-quality');
     args.push(Math.round(opt.quality * 9.0).toString());
   }
@@ -411,5 +459,8 @@ exports.resizeArgs = function(options) {
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
 
-  return {opt:opt, args:args};
+  return {
+    opt: opt,
+    args: args
+  };
 }
