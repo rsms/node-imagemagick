@@ -1,5 +1,5 @@
 # node-imagemagick
-
+npm is a node package
 **This is an abandoned version. Please see [@yourdeveloper/node-imagemagick](https://github.com/yourdeveloper/node-imagemagick) for the currently maintained version**
 
 [Imagemagick](http://www.imagemagick.org/) module for [Node](http://nodejs.org/).
